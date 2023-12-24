@@ -4,6 +4,8 @@ TAG := infinitime-build
 BUILD_OUTPUT  ?= build/output
 PUBLISH_FILES ?= $(BUILD_OUTPUT)/*app-dfu*.zip
 
+TIMESTAMP := $(shell date +%H.%M.%S)
+
 default: build
 
 .PHONY: build-image
@@ -25,5 +27,5 @@ ifneq ($(INFINITIME_PUBLISH_DIR),)
 publish: build $(INFINITIME_PUBLISH_DIR)
 
 $(INFINITIME_PUBLISH_DIR): $(PUBLISH_FILES)
-	cp -f $? "$(INFINITIME_PUBLISH_DIR)/"
+	cp -f $? "$(INFINITIME_PUBLISH_DIR)/$(TIMESTAMP)-dfu.zip"
 endif
