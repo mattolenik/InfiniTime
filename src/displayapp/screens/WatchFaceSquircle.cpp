@@ -1,6 +1,5 @@
 #include "displayapp/screens/WatchFaceSquircle.h"
 #include <cmath>
-#include <iostream>
 #include <lvgl/lvgl.h>
 #include "displayapp/screens/BatteryIcon.h"
 #include "displayapp/screens/BleIcon.h"
@@ -12,9 +11,6 @@
 using namespace Pinetime::Applications::Screens;
 
 namespace {
-  constexpr int16_t HourLength = 70;
-  constexpr int16_t MinuteLength = 90;
-
   // sin(90) = 1 so the value of _lv_trigo_sin(90) is the scaling factor
   const auto LV_TRIG_SCALE = _lv_trigo_sin(90);
 
@@ -92,10 +88,11 @@ WatchFaceSquircle::WatchFaceSquircle(Controllers::DateTime& dateTimeController,
   minute_body = lv_line_create(lv_scr_act(), nullptr);
   hour_body = lv_line_create(lv_scr_act(), nullptr);
   second_body = lv_line_create(lv_scr_act(), nullptr);
+  hour_scale_body = lv_line_create(lv_scr_act(), nullptr);
 
   lv_style_init(&second_line_style);
   lv_style_set_line_width(&second_line_style, LV_STATE_DEFAULT, 3);
-  lv_style_set_line_color(&second_line_style, LV_STATE_DEFAULT, LV_COLOR_RED);
+  lv_style_set_line_color(&second_line_style, LV_STATE_DEFAULT, LV_COLOR_BLUE);
   lv_style_set_line_rounded(&second_line_style, LV_STATE_DEFAULT, true);
   lv_obj_add_style(second_body, LV_LINE_PART_MAIN, &second_line_style);
 
@@ -111,10 +108,23 @@ WatchFaceSquircle::WatchFaceSquircle(Controllers::DateTime& dateTimeController,
   lv_style_set_line_rounded(&hour_line_style, LV_STATE_DEFAULT, false);
   lv_obj_add_style(hour_body, LV_LINE_PART_MAIN, &hour_line_style);
 
+  lv_draw_line_dsc_init(&hour_scale_line_dsc);
+  hour_scale_line_dsc.color = LV_COLOR_WHITE;
+  hour_scale_line_dsc.width = 4;
+  hour_scale_line_dsc.dash_width = 0;
+  hour_scale_line_dsc.dash_gap = 0;
+  hour_scale_line_dsc.round_start = 0;
+  hour_scale_line_dsc.round_end = 0;
+  hour_scale_line_dsc.raw_end = 1;
+  hour_scale_line_dsc.blend_mode = LV_BLEND_MODE_NORMAL;
+
+  lv_obj_get_coords(lv_scr_act(), &screen_area);
+
   lv_disp_t* disp = lv_disp_get_default();
-  float screenRadius = fmin(lv_disp_get_hor_res(disp), lv_disp_get_ver_res(disp)) / 2;
-  CalculateSquirclePoints(scale_hour_points_outer, screenRadius, screenRadius, screenRadius * 0.9, 3);
-  CalculateSquirclePoints(scale_hour_points_inner, screenRadius, screenRadius, screenRadius * 0.8, 3);
+  lv_coord_t disp_width = lv_disp_get_hor_res(disp);
+  lv_coord_t disp_height = lv_disp_get_ver_res(disp);
+  float maxRadius = fmin(disp_width, disp_height) / 2;
+  CalculateSquircleRadii(scale_radii, maxRadius * 0.9, 3, 1, 1);
 
   taskRefresh = lv_task_create(RefreshTaskCallback, LV_DISP_DEF_REFR_PERIOD, LV_TASK_PRIO_MID, this);
 
@@ -149,10 +159,17 @@ void draw_filled_circle(int x, int y, int radius) {
   lv_obj_add_style(circle, LV_OBJ_PART_MAIN, &style);
 }
 
-template <size_t P>
-void WatchFaceSquircle::DrawSquircle(lv_point_t (&points)[P]) {
-  for (int i = 0; i < P; i++) {
-    draw_filled_circle(points[i].x, points[i].y, 3);
+template <size_t N>
+void WatchFaceSquircle::DrawScales(float (&radii)[N], float length_scale, int every_nth, lv_draw_line_dsc_t* line_dsc) {
+  lv_point_t p1, p2;
+  float r1, r2, theta;
+  for (int i = 0; i < N; i += every_nth) {
+    r1 = radii[i];
+    r2 = r1 * length_scale;
+    theta = (static_cast<float>(i) / static_cast<float>(N)) * TAU;
+    NearestPoint(r1 * cosf(theta) + 120, r1 * sinf(theta) + 120, &p1);
+    NearestPoint(r2 * cosf(theta) + 120, r2 * sinf(theta) + 120, &p2);
+    lv_draw_line(&p1, &p2, &screen_area, line_dsc);
   }
 }
 
@@ -163,35 +180,22 @@ void WatchFaceSquircle::NearestPoint(float x, float y, lv_point_t* point) {
   *point = {static_cast<lv_coord_t>(nearbyintf(x)), static_cast<lv_coord_t>(nearbyintf(y))};
 }
 
-// Calculate P points for a squircle using the superellipse formula, see https://en.wikipedia.org/wiki/Superellipse
-template <size_t P>
-void WatchFaceSquircle::CalculateSquirclePoints(lv_point_t (&points)[P],
-                                                lv_coord_t pos_x,
-                                                lv_coord_t pos_y,
-                                                float radius,
-                                                float n,
-                                                float a,
-                                                float b) {
+template <size_t N>
+void WatchFaceSquircle::CalculateSquircleRadii(float (&radii)[N], float size, float n, float a, float b) {
   float inverse_n = -1.0 / n;
-  for (int i = 0; i < P; i++) {
-    float ratio = static_cast<float>(i) / static_cast<float>(P);
-    float theta = ratio * TAU;
+  for (int i = 0; i < N; i++) {
+    float theta = (static_cast<float>(i) / static_cast<float>(N)) * TAU;
     float cos_t = cosf(theta);
     float sin_t = sinf(theta);
 
     // The superellipse formula gives the radius for use in a polar coordinate, name it (r, theta)
     // Theta is already known, use the formula to get the radius:
-    float r = powf(powf(fabs(cos_t / a), n) + powf(fabs(sin_t / a), n), inverse_n) * radius; // Scale by radius passed by caller
-    // Then convert the polar coordinate (r, theta) to cartesian (x, y):
-    float x = r * cos_t + static_cast<float>(pos_x);
-    float y = r * sin_t + static_cast<float>(pos_y);
-    NearestPoint(x, y, &(points[i]));
+    radii[i] = powf(powf(fabs(cos_t / a), n) + powf(fabs(sin_t / a), n), inverse_n) * size; // scale by caller's size
   }
 }
 
 void WatchFaceSquircle::UpdateClock() {
-  DrawSquircle(scale_hour_points_outer);
-  DrawSquircle(scale_hour_points_inner);
+  DrawScales(scale_radii, 0.95, 15, &hour_scale_line_dsc);
 
   uint8_t hour = dateTimeController.Hours();
   uint8_t minute = dateTimeController.Minutes();
@@ -218,10 +222,13 @@ void WatchFaceSquircle::UpdateClock() {
 
   if (sSecond != second) {
     sSecond = second;
-    auto const angle = second * 6;
-
-    second_point[0] = CoordinateRelocate(100, angle);
-    second_point[1] = CoordinateRelocate(110, angle);
+    float r1 = scale_radii[second];
+    float r2 = r1 - 20;
+    float theta = (static_cast<float>(second) / 60.0) * TAU;
+    float cos_t = cosf(theta);
+    float sin_t = sinf(theta);
+    NearestPoint(r1 * cos_t + 120, r1 * sin_t + 120, &second_point[0]);
+    NearestPoint(r2 * cos_t + 120, r2 * sin_t + 120, &second_point[1]);
     lv_line_set_points(second_body, second_point, 2);
   }
 }

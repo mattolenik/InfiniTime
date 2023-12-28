@@ -52,6 +52,8 @@ namespace Pinetime {
         lv_obj_t* minute_body;
         lv_obj_t* second_body;
 
+        lv_obj_t* hour_scale_body;
+
         lv_point_t hour_point[2];
         lv_point_t minute_point[2];
         lv_point_t second_point[2];
@@ -60,12 +62,15 @@ namespace Pinetime {
         lv_style_t minute_line_style;
         lv_style_t second_line_style;
 
+        lv_draw_line_dsc_t hour_scale_line_dsc;
+
         lv_obj_t* label_date_day;
         lv_obj_t* plugIcon;
         lv_obj_t* notificationIcon;
         lv_obj_t* bleIcon;
-        lv_point_t scale_hour_points_outer[12];
-        lv_point_t scale_hour_points_inner[12];
+
+        float scale_radii[60];
+        lv_area_t screen_area;
 
         BatteryIcon batteryIcon;
 
@@ -80,17 +85,11 @@ namespace Pinetime {
 
         void NearestPoint(float x, float y, lv_point_t* point);
 
-        template <size_t P>
-        void DrawSquircle(lv_point_t (&points)[P]);
+        template <size_t N>
+        void CalculateSquircleRadii(float (&radii)[N], float size, float n, float a, float b);
 
-        template <size_t P>
-        void CalculateSquirclePoints(lv_point_t (&points)[P],
-                                     lv_coord_t pos_x,
-                                     lv_coord_t pos_y,
-                                     float radius,
-                                     float n = 3,
-                                     float a = 1,
-                                     float b = 1);
+        template <size_t N>
+        void DrawScales(float (&radii)[N], float length, int every_nth, lv_draw_line_dsc_t* line_dsc);
 
         lv_task_t* taskRefresh;
       };
