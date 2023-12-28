@@ -14,10 +14,11 @@ using namespace Pinetime::Applications::Screens;
 namespace {
   constexpr int16_t HourLength = 70;
   constexpr int16_t MinuteLength = 90;
-  constexpr int16_t SecondLength = 110;
 
   // sin(90) = 1 so the value of _lv_trigo_sin(90) is the scaling factor
   const auto LV_TRIG_SCALE = _lv_trigo_sin(90);
+
+  const float TAU = 2 * M_PI;
 
   int16_t Cosine(int16_t angle) {
     return _lv_trigo_sin(angle + 90);
@@ -39,7 +40,6 @@ namespace {
     return lv_point_t {.x = CoordinateXRelocate(radius * static_cast<int32_t>(Sine(angle)) / LV_TRIG_SCALE),
                        .y = CoordinateYRelocate(radius * static_cast<int32_t>(Cosine(angle)) / LV_TRIG_SCALE)};
   }
-
 }
 
 WatchFaceSquircle::WatchFaceSquircle(Controllers::DateTime& dateTimeController,
@@ -155,9 +155,12 @@ WatchFaceSquircle::WatchFaceSquircle(Controllers::DateTime& dateTimeController,
   lv_style_set_line_rounded(&hour_line_style_trace, LV_STATE_DEFAULT, false);
   lv_obj_add_style(hour_body_trace, LV_LINE_PART_MAIN, &hour_line_style_trace);
 
-  lv_draw_rect_dsc_init(&squircle_style);
-  squircle_style.bg_opa = LV_OPA_COVER;
-  squircle_style.bg_color = LV_COLOR_RED;
+  lv_disp_t* disp = lv_disp_get_default();
+  lv_coord_t screenWidth = lv_disp_get_hor_res(disp);
+  lv_coord_t screenHeight = lv_disp_get_ver_res(disp);
+  float radius = static_cast<float>(screenWidth < screenHeight ? screenWidth : screenHeight) / 2 * 0.9;
+
+  CalculateSquirclePoints(squircle_points, screenWidth / 2, screenHeight / 2, radius, 3, 1, 1);
 
   taskRefresh = lv_task_create(RefreshTaskCallback, LV_DISP_DEF_REFR_PERIOD, LV_TASK_PRIO_MID, this);
 
@@ -174,15 +177,6 @@ WatchFaceSquircle::~WatchFaceSquircle() {
   lv_style_reset(&second_line_style);
 
   lv_obj_clean(lv_scr_act());
-}
-
-float calculate_superellipse_radius(float theta, float a, float b, float n) {
-  float cos_t = cosf(theta);
-  float sin_t = sinf(theta);
-  float left_term = powf(fabs(cos_t / a), n);
-  float right_term = powf(fabs(sin_t / a), n);
-  float r = powf(left_term + right_term, (-1.0 / n));
-  return r;
 }
 
 void draw_filled_circle(int x, int y, int radius) {
@@ -203,29 +197,49 @@ void draw_filled_circle(int x, int y, int radius) {
   lv_obj_add_style(circle, LV_OBJ_PART_MAIN, &style);
 }
 
-void WatchFaceSquircle::DrawSquircle(lv_coord_t pos_x, lv_coord_t pos_y, float radius, float a, float b, float n) {
-  // Calculate points on the squircle
-  const int num_points = 32;
-  for (int i = 0; i < num_points; i++) {
-    float ratio = ((float) i / num_points);
-    float theta = ratio * 6.283;
-    float r = calculate_superellipse_radius(theta, a, b, n) * radius;
-    float x = r * cosf(theta) + (float) pos_x;
-    float y = r * sinf(theta) + (float) pos_y;
-    squircle_points[i] = lv_point_t {(lv_coord_t) nearbyint(x), (lv_coord_t) nearbyint(y)};
-    std::cout << squircle_points[i].x << ", y: " << squircle_points[i].y << "\n";
+template <size_t P>
+void WatchFaceSquircle::DrawSquircle(lv_point_t (&points)[P]) {
+  for (int i = 0; i < P; i++) {
     draw_filled_circle(squircle_points[i].x, squircle_points[i].y, 3);
   }
+}
 
-  static lv_area_t mask = {0, 240, 0, 240};
-  lv_draw_polygon(squircle_points, num_points, &mask, &squircle_style);
+/**
+ * Rounds x,y coordinates that are floats to the nearest integers and places them where pointed
+ */
+void WatchFaceSquircle::NearestPoint(float x, float y, lv_point_t* point) {
+  *point = {static_cast<lv_coord_t>(nearbyintf(x)), static_cast<lv_coord_t>(nearbyintf(y))};
+}
+
+// Calculate P points for a squircle using the superellipse formula, see https://en.wikipedia.org/wiki/Superellipse
+template <size_t P>
+void WatchFaceSquircle::CalculateSquirclePoints(lv_point_t (&points)[P],
+                                                lv_coord_t pos_x,
+                                                lv_coord_t pos_y,
+                                                float radius,
+                                                float n,
+                                                float a,
+                                                float b) {
+  float inverse_n = -1.0 / n;
+  for (int i = 0; i < P; i++) {
+    float ratio = static_cast<float>(i) / static_cast<float>(P);
+    float theta = ratio * TAU;
+    float cos_t = cosf(theta);
+    float sin_t = sinf(theta);
+
+    // The superellipse formula gives the radius for use in a polar coordinate, name it (r, theta)
+    // Theta is already known, use the formula to get the radius:
+    float r = powf(powf(fabs(cos_t / a), n) + powf(fabs(sin_t / a), n), inverse_n) * radius; // Scale by radius passed by caller
+    // Then convert the polar coordinate (r, theta) to cartesian (x, y):
+    float x = r * cos_t + static_cast<float>(pos_x);
+    float y = r * sin_t + static_cast<float>(pos_y);
+    std::cout << "r: " << r << ", x: " << x << ", y: " << y << std::endl;
+    NearestPoint(x, y, &(points[i]));
+  }
 }
 
 void WatchFaceSquircle::UpdateClock() {
-  lv_disp_t* disp = lv_disp_get_default();
-  lv_coord_t screenWidth = lv_disp_get_hor_res(disp);
-  lv_coord_t screenHeight = lv_disp_get_ver_res(disp);
-  DrawSquircle(screenWidth / 2, screenHeight / 2, 100, 1, 1, 3);
+  DrawSquircle(squircle_points);
 
   uint8_t hour = dateTimeController.Hours();
   uint8_t minute = dateTimeController.Minutes();

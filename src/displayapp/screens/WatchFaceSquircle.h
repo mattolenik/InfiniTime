@@ -73,9 +73,7 @@ namespace Pinetime {
         lv_obj_t* plugIcon;
         lv_obj_t* notificationIcon;
         lv_obj_t* bleIcon;
-
-        lv_point_t squircle_points[32];
-        lv_draw_rect_dsc_t squircle_style;
+        lv_point_t squircle_points[16];
 
         BatteryIcon batteryIcon;
 
@@ -87,7 +85,20 @@ namespace Pinetime {
 
         void UpdateClock();
         void SetBatteryIcon();
-        void DrawSquircle(lv_coord_t pos_x, lv_coord_t pos_y, float radius, float a, float b, float n);
+
+        void NearestPoint(float x, float y, lv_point_t* point);
+
+        template <size_t P>
+        void DrawSquircle(lv_point_t (&points)[P]);
+
+        template <size_t P>
+        void CalculateSquirclePoints(lv_point_t (&points)[P],
+                                     lv_coord_t pos_x,
+                                     lv_coord_t pos_y,
+                                     float radius,
+                                     float n = 3,
+                                     float a = 1,
+                                     float b = 1);
 
         lv_task_t* taskRefresh;
       };
@@ -95,6 +106,7 @@ namespace Pinetime {
 
     template <>
     struct WatchFaceTraits<WatchFace::Squircle> {
+
       static constexpr WatchFace watchFace = WatchFace::Squircle;
       static constexpr const char* name = "Squircle face";
 
