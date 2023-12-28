@@ -38,7 +38,7 @@ main() {
   CmakeGenerate
   CmakeBuild $target
   BUILD_RESULT=$?
-  if [ "$DISABLE_POSTBUILD" != "true" -a "$BUILD_RESULT" == 0 ]; then
+  if [[ "${DISABLE_POSTBUILD:-}" != "true" ]] && [[ "$BUILD_RESULT" == 0 ]]; then
     source "$BUILD_DIR/post_build.sh"
   fi
   # assuming post_build.sh will never fail on a successful build
