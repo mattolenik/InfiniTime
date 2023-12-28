@@ -23,6 +23,10 @@ namespace Pinetime {
   namespace Applications {
     namespace Screens {
 
+      typedef struct {
+        lv_point_t points[2];
+      } line_segment;
+
       class WatchFaceSquircle : public Screen {
       public:
         WatchFaceSquircle(Controllers::DateTime& dateTimeController,
@@ -52,7 +56,7 @@ namespace Pinetime {
         lv_obj_t* minute_body;
         lv_obj_t* second_body;
 
-        lv_obj_t* hour_scale_body;
+        lv_obj_t* hour_scale_line_objs[60];
 
         lv_point_t hour_point[2];
         lv_point_t minute_point[2];
@@ -61,8 +65,7 @@ namespace Pinetime {
         lv_style_t hour_line_style;
         lv_style_t minute_line_style;
         lv_style_t second_line_style;
-
-        lv_draw_line_dsc_t hour_scale_line_dsc;
+        lv_style_t hour_scale_style;
 
         lv_obj_t* label_date_day;
         lv_obj_t* plugIcon;
@@ -70,7 +73,7 @@ namespace Pinetime {
         lv_obj_t* bleIcon;
 
         float scale_radii[60];
-        lv_area_t screen_area;
+        line_segment scales[60];
 
         BatteryIcon batteryIcon;
 
@@ -89,7 +92,7 @@ namespace Pinetime {
         void CalculateSquircleRadii(float (&radii)[N], float size, float n, float a, float b);
 
         template <size_t N>
-        void DrawScales(float (&radii)[N], float length, int every_nth, lv_draw_line_dsc_t* line_dsc);
+        void DrawScales(float (&radii)[N], float length, int every_nth);
 
         lv_task_t* taskRefresh;
       };

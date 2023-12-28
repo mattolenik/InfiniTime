@@ -88,7 +88,6 @@ WatchFaceSquircle::WatchFaceSquircle(Controllers::DateTime& dateTimeController,
   minute_body = lv_line_create(lv_scr_act(), nullptr);
   hour_body = lv_line_create(lv_scr_act(), nullptr);
   second_body = lv_line_create(lv_scr_act(), nullptr);
-  hour_scale_body = lv_line_create(lv_scr_act(), nullptr);
 
   lv_style_init(&second_line_style);
   lv_style_set_line_width(&second_line_style, LV_STATE_DEFAULT, 3);
@@ -108,17 +107,15 @@ WatchFaceSquircle::WatchFaceSquircle(Controllers::DateTime& dateTimeController,
   lv_style_set_line_rounded(&hour_line_style, LV_STATE_DEFAULT, false);
   lv_obj_add_style(hour_body, LV_LINE_PART_MAIN, &hour_line_style);
 
-  lv_draw_line_dsc_init(&hour_scale_line_dsc);
-  hour_scale_line_dsc.color = LV_COLOR_WHITE;
-  hour_scale_line_dsc.width = 4;
-  hour_scale_line_dsc.dash_width = 0;
-  hour_scale_line_dsc.dash_gap = 0;
-  hour_scale_line_dsc.round_start = 0;
-  hour_scale_line_dsc.round_end = 0;
-  hour_scale_line_dsc.raw_end = 1;
-  hour_scale_line_dsc.blend_mode = LV_BLEND_MODE_NORMAL;
+  lv_style_init(&hour_scale_style);
+  lv_style_set_line_width(&hour_scale_style, LV_STATE_DEFAULT, 3);
+  lv_style_set_line_color(&hour_scale_style, LV_STATE_DEFAULT, LV_COLOR_WHITE);
+  lv_style_set_line_rounded(&hour_scale_style, LV_STATE_DEFAULT, false);
 
-  lv_obj_get_coords(lv_scr_act(), &screen_area);
+  for (int i = 0; i < 60; i++) {
+    hour_scale_line_objs[i] = lv_line_create(lv_scr_act(), nullptr);
+    lv_obj_add_style(hour_scale_line_objs[i], LV_LINE_PART_MAIN, &hour_scale_style);
+  }
 
   lv_disp_t* disp = lv_disp_get_default();
   lv_coord_t disp_width = lv_disp_get_hor_res(disp);
@@ -137,40 +134,21 @@ WatchFaceSquircle::~WatchFaceSquircle() {
   lv_style_reset(&hour_line_style);
   lv_style_reset(&minute_line_style);
   lv_style_reset(&second_line_style);
+  lv_style_reset(&hour_scale_style);
 
   lv_obj_clean(lv_scr_act());
 }
 
-void draw_filled_circle(int x, int y, int radius) {
-  // Create a generic object
-  lv_obj_t* circle = lv_obj_create(lv_scr_act(), NULL);
-
-  // Set the size of the object
-  lv_obj_set_size(circle, radius * 2, radius * 2);
-
-  // Move the circle to the desired position
-  lv_obj_set_pos(circle, x - radius, y - radius);
-
-  // Apply style
-  static lv_style_t style;
-  lv_style_init(&style);
-  lv_style_set_radius(&style, LV_STATE_DEFAULT, LV_RADIUS_CIRCLE); // Max radius for circle
-  lv_style_set_bg_color(&style, LV_STATE_DEFAULT, LV_COLOR_BLUE);  // Set fill color
-  lv_obj_add_style(circle, LV_OBJ_PART_MAIN, &style);
-}
-
 template <size_t N>
-void WatchFaceSquircle::DrawScales(float (&radii)[N], float length_scale, int every_nth, lv_draw_line_dsc_t* line_dsc) {
-  lv_point_t p1, p2;
-  float r1, r2, theta;
-  for (int i = 0; i < N; i += every_nth) {
-    r1 = radii[i];
-    r2 = r1 * length_scale;
-    theta = (static_cast<float>(i) / static_cast<float>(N)) * TAU;
-    NearestPoint(r1 * cosf(theta) + 120, r1 * sinf(theta) + 120, &p1);
-    NearestPoint(r2 * cosf(theta) + 120, r2 * sinf(theta) + 120, &p2);
-    lv_draw_line(&p1, &p2, &screen_area, line_dsc);
-  }
+void WatchFaceSquircle::DrawScales(float (&radii)[N], float length_scale, int every_nth) {
+  // for (int i = 0; i < N; i += every_nth) {
+  //   float r1 = radii[i];
+  //   float r2 = r1 * length_scale;
+  //   float theta = (static_cast<float>(i) / static_cast<float>(N)) * TAU;
+  //   NearestPoint(r1 * cosf(theta) + 120, r1 * sinf(theta) + 120, &scales[i].points[0]);
+  //   NearestPoint(r2 * cosf(theta) + 120, r2 * sinf(theta) + 120, &scales[i].points[1]);
+  //   lv_line_set_points(hour_scale_line_objs[i], scales[i].points, 2);
+  // }
 }
 
 /**
@@ -187,15 +165,19 @@ void WatchFaceSquircle::CalculateSquircleRadii(float (&radii)[N], float size, fl
     float theta = (static_cast<float>(i) / static_cast<float>(N)) * TAU;
     float cos_t = cosf(theta);
     float sin_t = sinf(theta);
-
     // The superellipse formula gives the radius for use in a polar coordinate, name it (r, theta)
     // Theta is already known, use the formula to get the radius:
     radii[i] = powf(powf(fabs(cos_t / a), n) + powf(fabs(sin_t / a), n), inverse_n) * size; // scale by caller's size
+    float r1 = radii[i];
+    float r2 = r1 * 0.9;
+    NearestPoint(r1 * cosf(theta) + 120, r1 * sinf(theta) + 120, &scales[i].points[0]);
+    NearestPoint(r2 * cosf(theta) + 120, r2 * sinf(theta) + 120, &scales[i].points[1]);
+    lv_line_set_points(hour_scale_line_objs[i], scales[i].points, 2);
   }
 }
 
 void WatchFaceSquircle::UpdateClock() {
-  DrawScales(scale_radii, 0.95, 15, &hour_scale_line_dsc);
+  DrawScales(scale_radii, 0.95, 15);
 
   uint8_t hour = dateTimeController.Hours();
   uint8_t minute = dateTimeController.Minutes();
