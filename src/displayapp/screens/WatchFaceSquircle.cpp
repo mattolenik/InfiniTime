@@ -59,36 +59,6 @@ WatchFaceSquircle::WatchFaceSquircle(Controllers::DateTime& dateTimeController,
   sMinute = 99;
   sSecond = 99;
 
-  minor_scales = lv_linemeter_create(lv_scr_act(), nullptr);
-  lv_linemeter_set_scale(minor_scales, 300, 51);
-  lv_linemeter_set_angle_offset(minor_scales, 180);
-  lv_obj_set_size(minor_scales, 240, 240);
-  lv_obj_align(minor_scales, nullptr, LV_ALIGN_CENTER, 0, 0);
-  lv_obj_set_style_local_bg_opa(minor_scales, LV_LINEMETER_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_TRANSP);
-  lv_obj_set_style_local_scale_width(minor_scales, LV_LINEMETER_PART_MAIN, LV_STATE_DEFAULT, 4);
-  lv_obj_set_style_local_scale_end_line_width(minor_scales, LV_LINEMETER_PART_MAIN, LV_STATE_DEFAULT, 1);
-  lv_obj_set_style_local_scale_end_color(minor_scales, LV_LINEMETER_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_GRAY);
-
-  major_scales = lv_linemeter_create(lv_scr_act(), nullptr);
-  lv_linemeter_set_scale(major_scales, 300, 11);
-  lv_linemeter_set_angle_offset(major_scales, 180);
-  lv_obj_set_size(major_scales, 240, 240);
-  lv_obj_align(major_scales, nullptr, LV_ALIGN_CENTER, 0, 0);
-  lv_obj_set_style_local_bg_opa(major_scales, LV_LINEMETER_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_TRANSP);
-  lv_obj_set_style_local_scale_width(major_scales, LV_LINEMETER_PART_MAIN, LV_STATE_DEFAULT, 6);
-  lv_obj_set_style_local_scale_end_line_width(major_scales, LV_LINEMETER_PART_MAIN, LV_STATE_DEFAULT, 4);
-  lv_obj_set_style_local_scale_end_color(major_scales, LV_LINEMETER_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_WHITE);
-
-  large_scales = lv_linemeter_create(lv_scr_act(), nullptr);
-  lv_linemeter_set_scale(large_scales, 180, 3);
-  lv_linemeter_set_angle_offset(large_scales, 180);
-  lv_obj_set_size(large_scales, 240, 240);
-  lv_obj_align(large_scales, nullptr, LV_ALIGN_CENTER, 0, 0);
-  lv_obj_set_style_local_bg_opa(large_scales, LV_LINEMETER_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_TRANSP);
-  lv_obj_set_style_local_scale_width(large_scales, LV_LINEMETER_PART_MAIN, LV_STATE_DEFAULT, 20);
-  lv_obj_set_style_local_scale_end_line_width(large_scales, LV_LINEMETER_PART_MAIN, LV_STATE_DEFAULT, 4);
-  lv_obj_set_style_local_scale_end_color(large_scales, LV_LINEMETER_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_AQUA);
-
   twelve = lv_label_create(lv_scr_act(), nullptr);
   lv_label_set_align(twelve, LV_LABEL_ALIGN_CENTER);
   lv_label_set_text_static(twelve, "12");
@@ -120,9 +90,7 @@ WatchFaceSquircle::WatchFaceSquircle(Controllers::DateTime& dateTimeController,
   lv_obj_align(label_date_day, nullptr, LV_ALIGN_CENTER, 50, 0);
 
   minute_body = lv_line_create(lv_scr_act(), nullptr);
-  minute_body_trace = lv_line_create(lv_scr_act(), nullptr);
   hour_body = lv_line_create(lv_scr_act(), nullptr);
-  hour_body_trace = lv_line_create(lv_scr_act(), nullptr);
   second_body = lv_line_create(lv_scr_act(), nullptr);
 
   lv_style_init(&second_line_style);
@@ -132,35 +100,21 @@ WatchFaceSquircle::WatchFaceSquircle(Controllers::DateTime& dateTimeController,
   lv_obj_add_style(second_body, LV_LINE_PART_MAIN, &second_line_style);
 
   lv_style_init(&minute_line_style);
-  lv_style_set_line_width(&minute_line_style, LV_STATE_DEFAULT, 7);
+  lv_style_set_line_width(&minute_line_style, LV_STATE_DEFAULT, 3);
   lv_style_set_line_color(&minute_line_style, LV_STATE_DEFAULT, LV_COLOR_WHITE);
-  lv_style_set_line_rounded(&minute_line_style, LV_STATE_DEFAULT, true);
+  lv_style_set_line_rounded(&minute_line_style, LV_STATE_DEFAULT, false);
   lv_obj_add_style(minute_body, LV_LINE_PART_MAIN, &minute_line_style);
 
-  lv_style_init(&minute_line_style_trace);
-  lv_style_set_line_width(&minute_line_style_trace, LV_STATE_DEFAULT, 3);
-  lv_style_set_line_color(&minute_line_style_trace, LV_STATE_DEFAULT, LV_COLOR_WHITE);
-  lv_style_set_line_rounded(&minute_line_style_trace, LV_STATE_DEFAULT, false);
-  lv_obj_add_style(minute_body_trace, LV_LINE_PART_MAIN, &minute_line_style_trace);
-
   lv_style_init(&hour_line_style);
-  lv_style_set_line_width(&hour_line_style, LV_STATE_DEFAULT, 7);
+  lv_style_set_line_width(&hour_line_style, LV_STATE_DEFAULT, 3);
   lv_style_set_line_color(&hour_line_style, LV_STATE_DEFAULT, LV_COLOR_WHITE);
-  lv_style_set_line_rounded(&hour_line_style, LV_STATE_DEFAULT, true);
+  lv_style_set_line_rounded(&hour_line_style, LV_STATE_DEFAULT, false);
   lv_obj_add_style(hour_body, LV_LINE_PART_MAIN, &hour_line_style);
 
-  lv_style_init(&hour_line_style_trace);
-  lv_style_set_line_width(&hour_line_style_trace, LV_STATE_DEFAULT, 3);
-  lv_style_set_line_color(&hour_line_style_trace, LV_STATE_DEFAULT, LV_COLOR_WHITE);
-  lv_style_set_line_rounded(&hour_line_style_trace, LV_STATE_DEFAULT, false);
-  lv_obj_add_style(hour_body_trace, LV_LINE_PART_MAIN, &hour_line_style_trace);
-
   lv_disp_t* disp = lv_disp_get_default();
-  lv_coord_t screenWidth = lv_disp_get_hor_res(disp);
-  lv_coord_t screenHeight = lv_disp_get_ver_res(disp);
-  float radius = static_cast<float>(screenWidth < screenHeight ? screenWidth : screenHeight) / 2 * 0.9;
-
-  CalculateSquirclePoints(squircle_points, screenWidth / 2, screenHeight / 2, radius, 3, 1, 1);
+  float screenRadius = fmin(lv_disp_get_hor_res(disp), lv_disp_get_ver_res(disp)) / 2;
+  CalculateSquirclePoints(scale_hour_points_outer, screenRadius, screenRadius, screenRadius * 0.9, 3);
+  CalculateSquirclePoints(scale_hour_points_inner, screenRadius, screenRadius, screenRadius * 0.8, 3);
 
   taskRefresh = lv_task_create(RefreshTaskCallback, LV_DISP_DEF_REFR_PERIOD, LV_TASK_PRIO_MID, this);
 
@@ -171,9 +125,7 @@ WatchFaceSquircle::~WatchFaceSquircle() {
   lv_task_del(taskRefresh);
 
   lv_style_reset(&hour_line_style);
-  lv_style_reset(&hour_line_style_trace);
   lv_style_reset(&minute_line_style);
-  lv_style_reset(&minute_line_style_trace);
   lv_style_reset(&second_line_style);
 
   lv_obj_clean(lv_scr_act());
@@ -200,12 +152,12 @@ void draw_filled_circle(int x, int y, int radius) {
 template <size_t P>
 void WatchFaceSquircle::DrawSquircle(lv_point_t (&points)[P]) {
   for (int i = 0; i < P; i++) {
-    draw_filled_circle(squircle_points[i].x, squircle_points[i].y, 3);
+    draw_filled_circle(points[i].x, points[i].y, 3);
   }
 }
 
 /**
- * Rounds x,y coordinates that are floats to the nearest integers and places them where pointed
+ * Rounds x,y coordinates that are floats to the nearest integers and places them where pointed as an lv_point_t
  */
 void WatchFaceSquircle::NearestPoint(float x, float y, lv_point_t* point) {
   *point = {static_cast<lv_coord_t>(nearbyintf(x)), static_cast<lv_coord_t>(nearbyintf(y))};
@@ -233,13 +185,13 @@ void WatchFaceSquircle::CalculateSquirclePoints(lv_point_t (&points)[P],
     // Then convert the polar coordinate (r, theta) to cartesian (x, y):
     float x = r * cos_t + static_cast<float>(pos_x);
     float y = r * sin_t + static_cast<float>(pos_y);
-    std::cout << "r: " << r << ", x: " << x << ", y: " << y << std::endl;
     NearestPoint(x, y, &(points[i]));
   }
 }
 
 void WatchFaceSquircle::UpdateClock() {
-  DrawSquircle(squircle_points);
+  DrawSquircle(scale_hour_points_outer);
+  DrawSquircle(scale_hour_points_inner);
 
   uint8_t hour = dateTimeController.Hours();
   uint8_t minute = dateTimeController.Minutes();
@@ -247,14 +199,10 @@ void WatchFaceSquircle::UpdateClock() {
 
   if (sMinute != minute) {
     auto const angle = minute * 6;
-    minute_point[0] = CoordinateRelocate(30, angle);
-    minute_point[1] = CoordinateRelocate(MinuteLength, angle);
-
-    minute_point_trace[0] = CoordinateRelocate(5, angle);
-    minute_point_trace[1] = CoordinateRelocate(31, angle);
+    minute_point[0] = CoordinateRelocate(5, angle);
+    minute_point[1] = CoordinateRelocate(31, angle);
 
     lv_line_set_points(minute_body, minute_point, 2);
-    lv_line_set_points(minute_body_trace, minute_point_trace, 2);
   }
 
   if (sHour != hour || sMinute != minute) {
@@ -262,14 +210,10 @@ void WatchFaceSquircle::UpdateClock() {
     sMinute = minute;
     auto const angle = (hour * 30 + minute / 2);
 
-    hour_point[0] = CoordinateRelocate(30, angle);
-    hour_point[1] = CoordinateRelocate(HourLength, angle);
-
-    hour_point_trace[0] = CoordinateRelocate(5, angle);
-    hour_point_trace[1] = CoordinateRelocate(31, angle);
+    hour_point[0] = CoordinateRelocate(5, angle);
+    hour_point[1] = CoordinateRelocate(31, angle);
 
     lv_line_set_points(hour_body, hour_point, 2);
-    lv_line_set_points(hour_body_trace, hour_point_trace, 2);
   }
 
   if (sSecond != second) {

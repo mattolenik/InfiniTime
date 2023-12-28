@@ -46,34 +46,26 @@ namespace Pinetime {
         using days = std::chrono::duration<int32_t, std::ratio<86400>>; // TODO: days is standard in c++20
         Utility::DirtyValue<std::chrono::time_point<std::chrono::system_clock, days>> currentDate;
 
-        lv_obj_t* minor_scales;
-        lv_obj_t* major_scales;
-        lv_obj_t* large_scales;
         lv_obj_t* twelve;
 
         lv_obj_t* hour_body;
-        lv_obj_t* hour_body_trace;
         lv_obj_t* minute_body;
-        lv_obj_t* minute_body_trace;
         lv_obj_t* second_body;
 
         lv_point_t hour_point[2];
-        lv_point_t hour_point_trace[2];
         lv_point_t minute_point[2];
-        lv_point_t minute_point_trace[2];
         lv_point_t second_point[2];
 
         lv_style_t hour_line_style;
-        lv_style_t hour_line_style_trace;
         lv_style_t minute_line_style;
-        lv_style_t minute_line_style_trace;
         lv_style_t second_line_style;
 
         lv_obj_t* label_date_day;
         lv_obj_t* plugIcon;
         lv_obj_t* notificationIcon;
         lv_obj_t* bleIcon;
-        lv_point_t squircle_points[16];
+        lv_point_t scale_hour_points_outer[12];
+        lv_point_t scale_hour_points_inner[12];
 
         BatteryIcon batteryIcon;
 
