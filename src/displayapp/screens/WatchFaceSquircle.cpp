@@ -10,33 +10,7 @@
 
 using namespace Pinetime::Applications::Screens;
 
-namespace {
-  // sin(90) = 1 so the value of _lv_trigo_sin(90) is the scaling factor
-  const auto LV_TRIG_SCALE = _lv_trigo_sin(90);
-
-  const float TAU = 2 * M_PI;
-
-  int16_t Cosine(int16_t angle) {
-    return _lv_trigo_sin(angle + 90);
-  }
-
-  int16_t Sine(int16_t angle) {
-    return _lv_trigo_sin(angle);
-  }
-
-  int16_t CoordinateXRelocate(int16_t x) {
-    return (x + LV_HOR_RES / 2);
-  }
-
-  int16_t CoordinateYRelocate(int16_t y) {
-    return std::abs(y - LV_HOR_RES / 2);
-  }
-
-  lv_point_t CoordinateRelocate(int16_t radius, int16_t angle) {
-    return lv_point_t {.x = CoordinateXRelocate(radius * static_cast<int32_t>(Sine(angle)) / LV_TRIG_SCALE),
-                       .y = CoordinateYRelocate(radius * static_cast<int32_t>(Cosine(angle)) / LV_TRIG_SCALE)};
-  }
-}
+const float TAU = 6.28318;
 
 WatchFaceSquircle::WatchFaceSquircle(Controllers::DateTime& dateTimeController,
                                      const Controllers::Battery& batteryController,
@@ -149,7 +123,7 @@ void WatchFaceSquircle::NearestPoint(float x, float y, lv_point_t* point) {
 template <size_t N>
 void WatchFaceSquircle::CalculateSquircleRadii(lv_obj_t* (&line_objs)[N], float size, float n, float a, float b) {
   float inverse_n = -1.0 / n;
-  for (int i = 0; i < N; i++) {
+  for (size_t i = 0; i < N; i++) {
     float theta = (static_cast<float>(i) / static_cast<float>(N)) * TAU;
     float cos_t = cosf(theta);
     float sin_t = sinf(theta);
