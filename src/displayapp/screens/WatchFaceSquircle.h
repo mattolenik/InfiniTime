@@ -72,7 +72,6 @@ namespace Pinetime {
         lv_obj_t* notificationIcon;
         lv_obj_t* bleIcon;
 
-        float scale_radii[60];
         line_segment scales[60];
 
         BatteryIcon batteryIcon;
@@ -89,10 +88,7 @@ namespace Pinetime {
         void NearestPoint(float x, float y, lv_point_t* point);
 
         template <size_t N>
-        void CalculateSquircleRadii(float (&radii)[N], float size, float n, float a, float b);
-
-        template <size_t N>
-        void DrawScales(float (&radii)[N], float length, int every_nth);
+        void CalculateSquircleRadii(lv_obj_t* (&line_objs)[N], float size, float n, float a, float b);
 
         lv_task_t* taskRefresh;
       };
