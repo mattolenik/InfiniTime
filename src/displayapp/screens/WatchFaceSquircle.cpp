@@ -1,6 +1,5 @@
 #include "displayapp/screens/WatchFaceSquircle.h"
 #include <cmath>
-#include <iostream>
 #include <lvgl/lvgl.h>
 #include "displayapp/screens/BatteryIcon.h"
 #include "displayapp/screens/BleIcon.h"
