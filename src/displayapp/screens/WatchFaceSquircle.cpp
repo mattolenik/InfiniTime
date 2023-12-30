@@ -32,14 +32,18 @@ WatchFaceSquircle::WatchFaceSquircle(Controllers::DateTime& dateTimeController,
   minute = 99;
   second = 99;
 
+  backdrop = lv_obj_create(lv_scr_act(), nullptr);
+  lv_obj_set_size(backdrop, 240, 240);
+  lv_obj_align(backdrop, nullptr, LV_ALIGN_IN_TOP_LEFT, 0, 0);
+
   twelve = lv_label_create(lv_scr_act(), nullptr);
   lv_label_set_align(twelve, LV_LABEL_ALIGN_CENTER);
   lv_label_set_text_static(twelve, "12");
   lv_obj_set_pos(twelve, 110, 10);
-  lv_obj_set_style_local_text_color(twelve, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_AQUA);
+  lv_obj_set_style_local_text_color(twelve, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_BLACK);
 
   batteryIcon.Create(lv_scr_act());
-  lv_obj_align(batteryIcon.GetObject(), nullptr, LV_ALIGN_IN_TOP_RIGHT, 0, 0);
+  lv_obj_align(batteryIcon.GetObject(), nullptr, LV_ALIGN_IN_TOP_RIGHT, -6, 6);
 
   plugIcon = lv_label_create(lv_scr_act(), nullptr);
   lv_label_set_text_static(plugIcon, Symbols::plug);
@@ -47,57 +51,56 @@ WatchFaceSquircle::WatchFaceSquircle(Controllers::DateTime& dateTimeController,
 
   bleIcon = lv_label_create(lv_scr_act(), nullptr);
   lv_label_set_text_static(bleIcon, "");
-  lv_obj_align(bleIcon, nullptr, LV_ALIGN_IN_TOP_RIGHT, -30, 0);
+  lv_obj_align(bleIcon, nullptr, LV_ALIGN_IN_TOP_RIGHT, -30, 6);
 
   notificationIcon = lv_label_create(lv_scr_act(), nullptr);
-  lv_obj_set_style_local_text_color(notificationIcon, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_LIME);
+  lv_obj_set_style_local_text_color(notificationIcon, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_BLACK);
   lv_label_set_text_static(notificationIcon, NotificationIcon::GetIcon(false));
   lv_obj_align(notificationIcon, nullptr, LV_ALIGN_IN_TOP_LEFT, 0, 0);
 
   // Date - Day / Week day
 
   label_date_day = lv_label_create(lv_scr_act(), nullptr);
-  lv_obj_set_style_local_text_color(label_date_day, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, Colors::orange);
-  lv_label_set_text_fmt(label_date_day, "%s\n%02i", dateTimeController.DayOfWeekShortToString(), dateTimeController.Day());
-  lv_label_set_align(label_date_day, LV_LABEL_ALIGN_CENTER);
-  lv_obj_align(label_date_day, nullptr, LV_ALIGN_CENTER, 50, 0);
+  lv_obj_set_style_local_text_color(label_date_day, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, color_date);
+  lv_label_set_align(label_date_day, LV_LABEL_ALIGN_LEFT);
+  lv_obj_align(label_date_day, nullptr, LV_ALIGN_CENTER, 45, 0);
 
-  minute_body = lv_line_create(lv_scr_act(), nullptr);
-  hour_body = lv_line_create(lv_scr_act(), nullptr);
-  second_body = lv_line_create(lv_scr_act(), nullptr);
+  minute_body = lv_line_create(backdrop, nullptr);
+  hour_body = lv_line_create(backdrop, nullptr);
+  second_body = lv_line_create(backdrop, nullptr);
 
   lv_style_init(&second_line_style);
-  lv_style_set_line_width(&second_line_style, LV_STATE_DEFAULT, 2);
-  lv_style_set_line_color(&second_line_style, LV_STATE_DEFAULT, LV_COLOR_RED);
+  lv_style_set_line_width(&second_line_style, LV_STATE_DEFAULT, width_second_hand);
+  lv_style_set_line_color(&second_line_style, LV_STATE_DEFAULT, color_second_hand);
   lv_style_set_line_rounded(&second_line_style, LV_STATE_DEFAULT, false);
   lv_obj_add_style(second_body, LV_LINE_PART_MAIN, &second_line_style);
 
   lv_style_init(&minute_line_style);
-  lv_style_set_line_width(&minute_line_style, LV_STATE_DEFAULT, 3);
-  lv_style_set_line_color(&minute_line_style, LV_STATE_DEFAULT, LV_COLOR_BLACK);
-  lv_style_set_line_rounded(&minute_line_style, LV_STATE_DEFAULT, false);
+  lv_style_set_line_width(&minute_line_style, LV_STATE_DEFAULT, width_minute_hand);
+  lv_style_set_line_color(&minute_line_style, LV_STATE_DEFAULT, color_hour_minute_hands);
+  lv_style_set_line_rounded(&minute_line_style, LV_STATE_DEFAULT, true);
   lv_obj_add_style(minute_body, LV_LINE_PART_MAIN, &minute_line_style);
 
   lv_style_init(&hour_line_style);
-  lv_style_set_line_width(&hour_line_style, LV_STATE_DEFAULT, 3);
-  lv_style_set_line_color(&hour_line_style, LV_STATE_DEFAULT, LV_COLOR_BLACK);
-  lv_style_set_line_rounded(&hour_line_style, LV_STATE_DEFAULT, false);
+  lv_style_set_line_width(&hour_line_style, LV_STATE_DEFAULT, width_hour_hand);
+  lv_style_set_line_color(&hour_line_style, LV_STATE_DEFAULT, color_hour_minute_hands);
+  lv_style_set_line_rounded(&hour_line_style, LV_STATE_DEFAULT, true);
   lv_obj_add_style(hour_body, LV_LINE_PART_MAIN, &hour_line_style);
 
   lv_style_init(&hour_scale_style);
-  lv_style_set_line_width(&hour_scale_style, LV_STATE_DEFAULT, 4);
-  lv_style_set_line_color(&hour_scale_style, LV_STATE_DEFAULT, LV_COLOR_BLACK);
+  lv_style_set_line_width(&hour_scale_style, LV_STATE_DEFAULT, width_hour_scales);
+  lv_style_set_line_color(&hour_scale_style, LV_STATE_DEFAULT, color_hour_scales);
   lv_style_set_line_rounded(&hour_scale_style, LV_STATE_DEFAULT, false);
 
-  lv_color_t from_color = lv_color_hex(0xFDF8DC);
-  lv_color_t to_color = lv_color_hex(0xA3AEB0);
   lv_style_init(&backdrop_style);
   lv_style_set_bg_opa(&backdrop_style, LV_STATE_DEFAULT, LV_OPA_COVER);
-  lv_style_set_bg_color(&backdrop_style, LV_STATE_DEFAULT, from_color);
-  lv_style_set_bg_grad_color(&backdrop_style, LV_STATE_DEFAULT, to_color);
+  lv_style_set_bg_color(&backdrop_style, LV_STATE_DEFAULT, color_bg_grad_top);
+  lv_style_set_bg_grad_color(&backdrop_style, LV_STATE_DEFAULT, color_bg_grad_bottom);
   lv_style_set_bg_grad_dir(&backdrop_style, LV_STATE_DEFAULT, LV_GRAD_DIR_VER);
-  lv_style_set_bg_grad_stop(&backdrop_style, LV_STATE_DEFAULT, 239);
-  lv_obj_add_style(lv_scr_act(), LV_OBJ_PART_MAIN, &backdrop_style);
+  lv_style_set_bg_grad_stop(&backdrop_style, LV_STATE_DEFAULT, 239); // TODO: replace 239 with screenheight-1
+  lv_style_set_clip_corner(&backdrop_style, LV_STATE_DEFAULT, true);
+  lv_style_set_radius(&backdrop_style, LV_STATE_DEFAULT, 12);
+  lv_obj_add_style(backdrop, LV_OBJ_PART_MAIN, &backdrop_style);
 
   for (int i = 0; i < 12; i++) {
     hour_scale_line_objs[i] = lv_line_create(lv_scr_act(), nullptr);
@@ -154,44 +157,50 @@ void WatchFaceSquircle::UpdateClock() {
   uint8_t latest_hour = dateTimeController.Hours();
   uint8_t latest_minute = dateTimeController.Minutes();
   uint8_t latest_second = dateTimeController.Seconds();
+  lv_coord_t offset = 120; // TODO: replace with screenwidth/2
+  float r, t, cos_t, sin_t;
 
   if (latest_minute != minute) {
     minute = latest_minute;
-    float r1 = 100;
-    float r2 = 0;
-    float t = (static_cast<float>(minute) / 60) * TAU - PI_2;
-    minute_point[0].x = r1 * cosf(t) + 120;
-    minute_point[0].y = r1 * sinf(t) + 120;
-    minute_point[1].x = r2 * cosf(t) + 120;
-    minute_point[1].y = r2 * sinf(t) + 120;
+    minutef = static_cast<float>(minute);
+
+    t = ((minutef / 60) * TAU) - PI_2;
+    cos_t = cosf(t);
+    sin_t = sinf(t);
+
+    NearestPoint(length_minute_hand * cos_t + offset, length_minute_hand * sin_t + offset, &minute_point[0]);
+    minute_point[1] = {offset, offset};
+
     lv_line_set_points(minute_body, minute_point, 2);
   }
 
   if (latest_hour != hour || latest_minute != minute) {
     hour = latest_hour;
+    hourf = static_cast<float>(hour);
     twelveHour = hour % 12;
-    float r1 = 70;
-    float r2 = 0;
-    float wholeHourAngle = static_cast<float>(twelveHour) * HOUR_SLICE - PI_2;
-    float partialHourAngle = (static_cast<float>(minute) / 60) * HOUR_SLICE;
-    std::cout << partialHourAngle << std::endl;
-    float t = wholeHourAngle + partialHourAngle;
-    hour_point[0].x = r1 * cosf(t) + 120;
-    hour_point[0].y = r1 * sinf(t) + 120;
-    hour_point[1].x = r2 * cosf(t) + 120;
-    hour_point[1].y = r2 * sinf(t) + 120;
+    twelveHourf = static_cast<float>(twelveHour);
+
+    t = (twelveHourf * HOUR_SLICE - PI_2) + (minutef / 60 * HOUR_SLICE);
+    cos_t = cosf(t);
+    sin_t = sinf(t);
+
+    NearestPoint(length_hour_hand * cos_t + offset, length_hour_hand * sin_t + offset, &hour_point[0]);
+    hour_point[1] = {offset, offset};
+
     lv_line_set_points(hour_body, hour_point, 2);
   }
 
   if (latest_second != second) {
     second = latest_second;
-    float r = 108;
-    float r2 = -30;
-    float t = (static_cast<float>(second) / 60) * TAU - PI_2;
-    second_point[0].x = r * cosf(t) + 120;
-    second_point[0].y = r * sinf(t) + 120;
-    second_point[1].x = r2 * cosf(t) + 120;
-    second_point[1].y = r2 * sinf(t) + 120;
+    secondf = static_cast<float>(second);
+
+    t = ((secondf / 60) * TAU) - PI_2;
+    cos_t = cosf(t);
+    sin_t = sinf(t);
+
+    NearestPoint(length_second_hand * cos_t + offset, length_second_hand * sin_t + offset, &second_point[0]);
+    NearestPoint(length_second_hand_back * cos_t + offset, length_second_hand_back * sin_t + offset, &second_point[1]);
+
     lv_line_set_points(second_body, second_point, 2);
   }
 }
@@ -241,7 +250,7 @@ void WatchFaceSquircle::Refresh() {
 
     currentDate = std::chrono::time_point_cast<days>(currentDateTime.Get());
     if (currentDate.IsUpdated()) {
-      lv_label_set_text_fmt(label_date_day, "%s\n%02i", dateTimeController.DayOfWeekShortToString(), dateTimeController.Day());
+      lv_label_set_text_fmt(label_date_day, "%s %02i", dateTimeController.DayOfWeekShortToString(), dateTimeController.Day());
     }
   }
 }
