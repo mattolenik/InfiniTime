@@ -1,5 +1,6 @@
 #include "displayapp/screens/WatchFaceSquircle.h"
 #include <cmath>
+#include <iostream>
 #include <lvgl/lvgl.h>
 #include "displayapp/screens/BatteryIcon.h"
 #include "displayapp/screens/BleIcon.h"
@@ -11,6 +12,8 @@
 using namespace Pinetime::Applications::Screens;
 
 const float TAU = 6.28318;
+const float PI_2 = 1.57079632679; // pi/2
+const float HOUR_SLICE = TAU / 12.0;
 
 WatchFaceSquircle::WatchFaceSquircle(Controllers::DateTime& dateTimeController,
                                      const Controllers::Battery& batteryController,
@@ -25,9 +28,9 @@ WatchFaceSquircle::WatchFaceSquircle(Controllers::DateTime& dateTimeController,
     notificationManager {notificationManager},
     settingsController {settingsController} {
 
-  sHour = 99;
-  sMinute = 99;
-  sSecond = 99;
+  hour = 99;
+  minute = 99;
+  second = 99;
 
   twelve = lv_label_create(lv_scr_act(), nullptr);
   lv_label_set_align(twelve, LV_LABEL_ALIGN_CENTER);
@@ -71,20 +74,30 @@ WatchFaceSquircle::WatchFaceSquircle(Controllers::DateTime& dateTimeController,
 
   lv_style_init(&minute_line_style);
   lv_style_set_line_width(&minute_line_style, LV_STATE_DEFAULT, 3);
-  lv_style_set_line_color(&minute_line_style, LV_STATE_DEFAULT, LV_COLOR_WHITE);
+  lv_style_set_line_color(&minute_line_style, LV_STATE_DEFAULT, LV_COLOR_BLACK);
   lv_style_set_line_rounded(&minute_line_style, LV_STATE_DEFAULT, false);
   lv_obj_add_style(minute_body, LV_LINE_PART_MAIN, &minute_line_style);
 
   lv_style_init(&hour_line_style);
   lv_style_set_line_width(&hour_line_style, LV_STATE_DEFAULT, 3);
-  lv_style_set_line_color(&hour_line_style, LV_STATE_DEFAULT, LV_COLOR_WHITE);
+  lv_style_set_line_color(&hour_line_style, LV_STATE_DEFAULT, LV_COLOR_BLACK);
   lv_style_set_line_rounded(&hour_line_style, LV_STATE_DEFAULT, false);
   lv_obj_add_style(hour_body, LV_LINE_PART_MAIN, &hour_line_style);
 
   lv_style_init(&hour_scale_style);
   lv_style_set_line_width(&hour_scale_style, LV_STATE_DEFAULT, 4);
-  lv_style_set_line_color(&hour_scale_style, LV_STATE_DEFAULT, LV_COLOR_WHITE);
+  lv_style_set_line_color(&hour_scale_style, LV_STATE_DEFAULT, LV_COLOR_BLACK);
   lv_style_set_line_rounded(&hour_scale_style, LV_STATE_DEFAULT, false);
+
+  lv_color_t from_color = lv_color_hex(0xFDF8DC);
+  lv_color_t to_color = lv_color_hex(0xA3AEB0);
+  lv_style_init(&backdrop_style);
+  lv_style_set_bg_opa(&backdrop_style, LV_STATE_DEFAULT, LV_OPA_COVER);
+  lv_style_set_bg_color(&backdrop_style, LV_STATE_DEFAULT, from_color);
+  lv_style_set_bg_grad_color(&backdrop_style, LV_STATE_DEFAULT, to_color);
+  lv_style_set_bg_grad_dir(&backdrop_style, LV_STATE_DEFAULT, LV_GRAD_DIR_VER);
+  lv_style_set_bg_grad_stop(&backdrop_style, LV_STATE_DEFAULT, 239);
+  lv_obj_add_style(lv_scr_act(), LV_OBJ_PART_MAIN, &backdrop_style);
 
   for (int i = 0; i < 12; i++) {
     hour_scale_line_objs[i] = lv_line_create(lv_scr_act(), nullptr);
@@ -138,15 +151,15 @@ void WatchFaceSquircle::CalculateSquircleRadii(lv_obj_t* (&line_objs)[N], float 
 }
 
 void WatchFaceSquircle::UpdateClock() {
-  uint8_t hour = dateTimeController.Hours();
-  uint8_t minute = dateTimeController.Minutes();
-  uint8_t second = dateTimeController.Seconds();
+  uint8_t latest_hour = dateTimeController.Hours();
+  uint8_t latest_minute = dateTimeController.Minutes();
+  uint8_t latest_second = dateTimeController.Seconds();
 
-  if (sMinute != minute) {
-    float r1 = 90;
+  if (latest_minute != minute) {
+    minute = latest_minute;
+    float r1 = 100;
     float r2 = 0;
-    auto const angle = (minute * 6);
-    float t = (static_cast<float>(angle) / 360.0) * TAU;
+    float t = (static_cast<float>(minute) / 60) * TAU - PI_2;
     minute_point[0].x = r1 * cosf(t) + 120;
     minute_point[0].y = r1 * sinf(t) + 120;
     minute_point[1].x = r2 * cosf(t) + 120;
@@ -154,13 +167,15 @@ void WatchFaceSquircle::UpdateClock() {
     lv_line_set_points(minute_body, minute_point, 2);
   }
 
-  if (sHour != hour || sMinute != minute) {
-    sHour = hour;
-    sMinute = minute;
-    float r1 = 65;
+  if (latest_hour != hour || latest_minute != minute) {
+    hour = latest_hour;
+    twelveHour = hour % 12;
+    float r1 = 70;
     float r2 = 0;
-    auto const angle = (hour * 30 + minute / 2);
-    float t = (static_cast<float>(angle) / 360.0) * TAU;
+    float wholeHourAngle = static_cast<float>(twelveHour) * HOUR_SLICE - PI_2;
+    float partialHourAngle = (static_cast<float>(minute) / 60) * HOUR_SLICE;
+    std::cout << partialHourAngle << std::endl;
+    float t = wholeHourAngle + partialHourAngle;
     hour_point[0].x = r1 * cosf(t) + 120;
     hour_point[0].y = r1 * sinf(t) + 120;
     hour_point[1].x = r2 * cosf(t) + 120;
@@ -168,11 +183,11 @@ void WatchFaceSquircle::UpdateClock() {
     lv_line_set_points(hour_body, hour_point, 2);
   }
 
-  if (sSecond != second) {
-    sSecond = second;
-    float r = 105;
+  if (latest_second != second) {
+    second = latest_second;
+    float r = 108;
     float r2 = -30;
-    float t = (static_cast<float>(second) / 60.0) * TAU;
+    float t = (static_cast<float>(second) / 60) * TAU - PI_2;
     second_point[0].x = r * cosf(t) + 120;
     second_point[0].y = r * sinf(t) + 120;
     second_point[1].x = r2 * cosf(t) + 120;
