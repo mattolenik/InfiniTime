@@ -82,11 +82,11 @@ WatchFaceSquircle::WatchFaceSquircle(Controllers::DateTime& dateTimeController,
   lv_obj_add_style(hour_body, LV_LINE_PART_MAIN, &hour_line_style);
 
   lv_style_init(&hour_scale_style);
-  lv_style_set_line_width(&hour_scale_style, LV_STATE_DEFAULT, 2);
-  lv_style_set_line_color(&hour_scale_style, LV_STATE_DEFAULT, LV_COLOR_GRAY);
+  lv_style_set_line_width(&hour_scale_style, LV_STATE_DEFAULT, 4);
+  lv_style_set_line_color(&hour_scale_style, LV_STATE_DEFAULT, LV_COLOR_WHITE);
   lv_style_set_line_rounded(&hour_scale_style, LV_STATE_DEFAULT, false);
 
-  for (int i = 0; i < 60; i++) {
+  for (int i = 0; i < 12; i++) {
     hour_scale_line_objs[i] = lv_line_create(lv_scr_act(), nullptr);
     lv_obj_add_style(hour_scale_line_objs[i], LV_LINE_PART_MAIN, &hour_scale_style);
   }
@@ -95,7 +95,7 @@ WatchFaceSquircle::WatchFaceSquircle(Controllers::DateTime& dateTimeController,
   lv_coord_t disp_width = lv_disp_get_hor_res(disp);
   lv_coord_t disp_height = lv_disp_get_ver_res(disp);
   float maxRadius = fmin(disp_width, disp_height) / 2;
-  CalculateSquircleRadii(hour_scale_line_objs, maxRadius * 0.95, 2.4, 1, 1);
+  CalculateSquircleRadii(hour_scale_line_objs, maxRadius * 0.97, 2.4, 1, 1);
 
   taskRefresh = lv_task_create(RefreshTaskCallback, LV_DISP_DEF_REFR_PERIOD, LV_TASK_PRIO_MID, this);
 
@@ -130,7 +130,7 @@ void WatchFaceSquircle::CalculateSquircleRadii(lv_obj_t* (&line_objs)[N], float 
     // The superellipse formula gives the radius for use in a polar coordinate, name it (r, theta)
     // Theta is already known, use the formula to get the radius:
     float r1 = powf(powf(fabs(cos_t / a), n) + powf(fabs(sin_t / a), n), inverse_n) * size;
-    float r2 = r1 * 0.96;
+    float r2 = r1 * 0.95;
     NearestPoint(r1 * cosf(theta) + 120, r1 * sinf(theta) + 120, &scales[i].points[0]);
     NearestPoint(r2 * cosf(theta) + 120, r2 * sinf(theta) + 120, &scales[i].points[1]);
     lv_line_set_points(line_objs[i], scales[i].points, 2);
@@ -143,7 +143,7 @@ void WatchFaceSquircle::UpdateClock() {
   uint8_t second = dateTimeController.Seconds();
 
   if (sMinute != minute) {
-    float r1 = 75;
+    float r1 = 90;
     float r2 = 0;
     auto const angle = (minute * 6);
     float t = (static_cast<float>(angle) / 360.0) * TAU;
@@ -157,7 +157,7 @@ void WatchFaceSquircle::UpdateClock() {
   if (sHour != hour || sMinute != minute) {
     sHour = hour;
     sMinute = minute;
-    float r1 = 55;
+    float r1 = 65;
     float r2 = 0;
     auto const angle = (hour * 30 + minute / 2);
     float t = (static_cast<float>(angle) / 360.0) * TAU;
@@ -170,7 +170,7 @@ void WatchFaceSquircle::UpdateClock() {
 
   if (sSecond != second) {
     sSecond = second;
-    float r = 95;
+    float r = 105;
     float r2 = -30;
     float t = (static_cast<float>(second) / 60.0) * TAU;
     second_point[0].x = r * cosf(t) + 120;

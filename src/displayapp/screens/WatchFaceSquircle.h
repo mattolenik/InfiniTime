@@ -56,7 +56,7 @@ namespace Pinetime {
         lv_obj_t* minute_body;
         lv_obj_t* second_body;
 
-        lv_obj_t* hour_scale_line_objs[60];
+        lv_obj_t* hour_scale_line_objs[12];
 
         lv_point_t hour_point[2];
         lv_point_t minute_point[2];
@@ -72,7 +72,7 @@ namespace Pinetime {
         lv_obj_t* notificationIcon;
         lv_obj_t* bleIcon;
 
-        line_segment scales[60];
+        line_segment scales[12];
 
         BatteryIcon batteryIcon;
 
