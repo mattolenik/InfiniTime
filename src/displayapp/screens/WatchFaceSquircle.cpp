@@ -28,11 +28,17 @@ WatchFaceSquircle::WatchFaceSquircle(Controllers::DateTime& dateTimeController,
     notificationManager {notificationManager},
     heartRateController {heartRateController},
     settingsController {settingsController},
-    batteryIcon(LV_COLOR_BLACK, Colors::deepOrange, LV_COLOR_RED, 150) {
+    batteryIcon(LV_COLOR_BLACK, Colors::deepOrange, LV_COLOR_RED, 150),
+    display {lv_disp_get_default()} {
 
   hour = 99;
   minute = 99;
   second = 99;
+
+  lv_coord_t disp_width = lv_disp_get_hor_res(display);
+  lv_coord_t disp_height = lv_disp_get_ver_res(display);
+  center_x = disp_width / 2;
+  center_y = disp_height / 2;
 
   backdrop = lv_obj_create(lv_scr_act(), nullptr);
   lv_obj_set_size(backdrop, 240, 240);
@@ -114,7 +120,7 @@ WatchFaceSquircle::WatchFaceSquircle(Controllers::DateTime& dateTimeController,
   lv_style_set_bg_color(&backdrop_style, LV_STATE_DEFAULT, lv_color_hex(0xFDF8DC));
   lv_style_set_bg_grad_color(&backdrop_style, LV_STATE_DEFAULT, lv_color_hex(0xA3AEB0));
   lv_style_set_bg_grad_dir(&backdrop_style, LV_STATE_DEFAULT, LV_GRAD_DIR_VER);
-  lv_style_set_bg_grad_stop(&backdrop_style, LV_STATE_DEFAULT, 239); // TODO: replace 239 with screenheight-1
+  lv_style_set_bg_grad_stop(&backdrop_style, LV_STATE_DEFAULT, disp_height - 1);
   lv_style_set_clip_corner(&backdrop_style, LV_STATE_DEFAULT, true);
   lv_style_set_radius(&backdrop_style, LV_STATE_DEFAULT, 12);
   lv_obj_add_style(backdrop, LV_OBJ_PART_MAIN, &backdrop_style);
@@ -124,9 +130,6 @@ WatchFaceSquircle::WatchFaceSquircle(Controllers::DateTime& dateTimeController,
     lv_obj_add_style(hour_scale_line_objs[i], LV_LINE_PART_MAIN, &hour_scale_style);
   }
 
-  lv_disp_t* disp = lv_disp_get_default();
-  lv_coord_t disp_width = lv_disp_get_hor_res(disp);
-  lv_coord_t disp_height = lv_disp_get_ver_res(disp);
   float maxRadius = fmin(disp_width, disp_height) / 2;
   CalculateSquircleRadii(hour_scale_line_objs, maxRadius * 0.97, 2.4, 1, 1);
 
@@ -163,9 +166,9 @@ void WatchFaceSquircle::CalculateSquircleRadii(lv_obj_t* (&line_objs)[N], float 
     // The superellipse formula gives the radius for use in a polar coordinate, name it (r, theta)
     // Theta is already known, use the formula to get the radius:
     float r1 = powf(powf(fabs(cos_t / a), n) + powf(fabs(sin_t / a), n), inverse_n) * size;
-    float r2 = r1 * 0.95;
-    NearestPoint(r1 * cosf(theta) + 120, r1 * sinf(theta) + 120, &scales[i].points[0]);
-    NearestPoint(r2 * cosf(theta) + 120, r2 * sinf(theta) + 120, &scales[i].points[1]);
+    float r2 = r1 * 0.90;
+    NearestPoint(r1 * cosf(theta) + center_x, r1 * sinf(theta) + center_x, &scales[i].points[0]);
+    NearestPoint(r2 * cosf(theta) + center_y, r2 * sinf(theta) + center_y, &scales[i].points[1]);
     lv_line_set_points(line_objs[i], scales[i].points, 2);
   }
 }
@@ -175,7 +178,6 @@ void WatchFaceSquircle::UpdateClock() {
   uint8_t latest_minute = dateTimeController.Minutes();
   uint8_t latest_second = dateTimeController.Seconds();
   float r1, r2, t, cos_t, sin_t;
-#define offset 120
 
   if (latest_minute != minute) {
     minute = latest_minute;
@@ -185,8 +187,8 @@ void WatchFaceSquircle::UpdateClock() {
     cos_t = cosf(t);
     sin_t = sinf(t);
 
-    NearestPoint(r1 * cos_t + offset, r1 * sin_t + offset, &minute_point[0]);
-    minute_point[1] = {offset, offset};
+    NearestPoint(r1 * cos_t + center_x, r1 * sin_t + center_y, &minute_point[0]);
+    minute_point[1] = {center_x, center_y};
 
     lv_line_set_points(minute_body, minute_point, 2);
   }
@@ -199,8 +201,8 @@ void WatchFaceSquircle::UpdateClock() {
     cos_t = cosf(t);
     sin_t = sinf(t);
 
-    NearestPoint(r1 * cos_t + offset, r1 * sin_t + offset, &hour_point[0]);
-    hour_point[1] = {offset, offset};
+    NearestPoint(r1 * cos_t + center_x, r1 * sin_t + center_y, &hour_point[0]);
+    hour_point[1] = {center_x, center_y};
 
     lv_line_set_points(hour_body, hour_point, 2);
   }
@@ -214,8 +216,8 @@ void WatchFaceSquircle::UpdateClock() {
     cos_t = cosf(t);
     sin_t = sinf(t);
 
-    NearestPoint(r1 * cos_t + offset, r1 * sin_t + offset, &second_point[0]);
-    NearestPoint(r2 * cos_t + offset, r2 * sin_t + offset, &second_point[1]);
+    NearestPoint(r1 * cos_t + center_x, r1 * sin_t + center_y, &second_point[0]);
+    NearestPoint(r2 * cos_t + center_x, r2 * sin_t + center_y, &second_point[1]);
 
     lv_line_set_points(second_body, second_point, 2);
   }

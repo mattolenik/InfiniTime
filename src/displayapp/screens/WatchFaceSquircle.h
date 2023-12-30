@@ -84,6 +84,9 @@ namespace Pinetime {
 
         line_segment scales[12]; // TODO: replace with runtime drawing?
 
+        lv_coord_t center_x;
+        lv_coord_t center_y;
+
         const Controllers::DateTime& dateTimeController;
         const Controllers::Battery& batteryController;
         const Controllers::Ble& bleController;
@@ -91,6 +94,7 @@ namespace Pinetime {
         Controllers::HeartRateController& heartRateController;
         Controllers::Settings& settingsController;
         BatteryIcon batteryIcon;
+        lv_disp_t* display;
 
         void UpdateClock();
         void SetBatteryIcon();
