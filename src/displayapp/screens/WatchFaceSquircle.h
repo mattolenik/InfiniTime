@@ -8,15 +8,18 @@
 #include "components/datetime/DateTimeController.h"
 #include "components/battery/BatteryController.h"
 #include "components/ble/BleController.h"
+#include "components/heartrate/HeartRateController.h"
 #include "components/ble/NotificationManager.h"
 #include "displayapp/screens/BatteryIcon.h"
 #include "utility/DirtyValue.h"
+#include "displayapp/InfiniTimeTheme.h"
 
 namespace Pinetime {
   namespace Controllers {
     class Settings;
     class Battery;
     class Ble;
+    class HeartRateController;
     class NotificationManager;
   }
 
@@ -33,6 +36,7 @@ namespace Pinetime {
                           const Controllers::Battery& batteryController,
                           const Controllers::Ble& bleController,
                           Controllers::NotificationManager& notificationManager,
+                          Controllers::HeartRateController& heartRateController,
                           Controllers::Settings& settingsController);
 
         ~WatchFaceSquircle() override;
@@ -50,6 +54,9 @@ namespace Pinetime {
         Utility::DirtyValue<bool> notificationState {false};
         using days = std::chrono::duration<int32_t, std::ratio<86400>>; // TODO: days is standard in c++20
         Utility::DirtyValue<std::chrono::time_point<std::chrono::system_clock, days>> currentDate;
+
+        Utility::DirtyValue<uint8_t> heartbeat {};
+        Utility::DirtyValue<bool> heartbeatRunning {};
 
         lv_obj_t* twelve;
 
@@ -73,6 +80,8 @@ namespace Pinetime {
         lv_obj_t* plugIcon;
         lv_obj_t* notificationIcon;
         lv_obj_t* bleIcon;
+        lv_obj_t* heartbeatIcon;
+        lv_obj_t* heartbeatValue;
 
         line_segment scales[12];
 
@@ -83,6 +92,9 @@ namespace Pinetime {
         const lv_color_t color_second_hand = LV_COLOR_RED;
         const lv_color_t color_date = LV_COLOR_BLACK;
         const lv_color_t color_time = LV_COLOR_BLACK;
+        const lv_color_t color_battery_high = LV_COLOR_BLACK;
+        const lv_color_t color_battery_low = Colors::deepOrange;
+        const lv_color_t color_battery_critical = LV_COLOR_RED;
         const lv_style_int_t width_hour_hand = 5;
         const lv_style_int_t width_minute_hand = 5;
         const lv_style_int_t width_second_hand = 2;
@@ -99,6 +111,7 @@ namespace Pinetime {
         const Controllers::Ble& bleController;
         Controllers::NotificationManager& notificationManager;
         Controllers::Settings& settingsController;
+        Controllers::HeartRateController& heartRateController;
 
         void UpdateClock();
         void SetBatteryIcon();
@@ -123,6 +136,7 @@ namespace Pinetime {
                                               controllers.batteryController,
                                               controllers.bleController,
                                               controllers.notificationManager,
+                                              controllers.heartRateController,
                                               controllers.settingsController);
       };
 

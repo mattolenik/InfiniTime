@@ -8,6 +8,7 @@ namespace Pinetime {
       class BatteryIcon {
       public:
         explicit BatteryIcon(bool colorOnLowBattery);
+        explicit BatteryIcon(lv_color_t highColor, lv_color_t lowColor, lv_color_t criticalColor, lv_opa_t opacity);
         void Create(lv_obj_t* parent);
 
         void SetColor(lv_color_t);
@@ -21,6 +22,10 @@ namespace Pinetime {
         lv_obj_t* batteryImg;
         lv_obj_t* batteryJuice;
         bool colorOnLowBattery = false;
+        lv_color_t highColor = LV_COLOR_WHITE;
+        lv_color_t lowColor = LV_COLOR_ORANGE;
+        lv_color_t criticalColor = LV_COLOR_RED;
+        lv_opa_t opacity = LV_OPA_COVER;
       };
     }
   }
