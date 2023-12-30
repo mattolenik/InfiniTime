@@ -23,13 +23,13 @@ WatchFaceSquircle::WatchFaceSquircle(Controllers::DateTime& dateTimeController,
                                      Controllers::HeartRateController& heartRateController,
                                      Controllers::Settings& settingsController)
   : currentDateTime {{}},
-    batteryIcon(color_battery_high, color_battery_low, color_battery_critical, 150),
     dateTimeController {dateTimeController},
     batteryController {batteryController},
     bleController {bleController},
     notificationManager {notificationManager},
     heartRateController {heartRateController},
-    settingsController {settingsController} {
+    settingsController {settingsController},
+    batteryIcon(LV_COLOR_BLACK, Colors::deepOrange, LV_COLOR_RED, 150) {
 
   hour = 99;
   minute = 99;
@@ -79,7 +79,7 @@ WatchFaceSquircle::WatchFaceSquircle(Controllers::DateTime& dateTimeController,
   // Date - Day / Week day
 
   label_date_day = lv_label_create(lv_scr_act(), nullptr);
-  lv_obj_set_style_local_text_color(label_date_day, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, color_date);
+  lv_obj_set_style_local_text_color(label_date_day, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_BLACK);
   lv_label_set_align(label_date_day, LV_LABEL_ALIGN_LEFT);
   lv_obj_align(label_date_day, nullptr, LV_ALIGN_CENTER, 45, 0);
 
@@ -88,32 +88,32 @@ WatchFaceSquircle::WatchFaceSquircle(Controllers::DateTime& dateTimeController,
   second_body = lv_line_create(backdrop, nullptr);
 
   lv_style_init(&second_line_style);
-  lv_style_set_line_width(&second_line_style, LV_STATE_DEFAULT, width_second_hand);
-  lv_style_set_line_color(&second_line_style, LV_STATE_DEFAULT, color_second_hand);
+  lv_style_set_line_width(&second_line_style, LV_STATE_DEFAULT, 2);
+  lv_style_set_line_color(&second_line_style, LV_STATE_DEFAULT, LV_COLOR_RED);
   lv_style_set_line_rounded(&second_line_style, LV_STATE_DEFAULT, false);
   lv_obj_add_style(second_body, LV_LINE_PART_MAIN, &second_line_style);
 
   lv_style_init(&minute_line_style);
-  lv_style_set_line_width(&minute_line_style, LV_STATE_DEFAULT, width_minute_hand);
-  lv_style_set_line_color(&minute_line_style, LV_STATE_DEFAULT, color_hour_minute_hands);
+  lv_style_set_line_width(&minute_line_style, LV_STATE_DEFAULT, 5);
+  lv_style_set_line_color(&minute_line_style, LV_STATE_DEFAULT, LV_COLOR_BLACK);
   lv_style_set_line_rounded(&minute_line_style, LV_STATE_DEFAULT, true);
   lv_obj_add_style(minute_body, LV_LINE_PART_MAIN, &minute_line_style);
 
   lv_style_init(&hour_line_style);
-  lv_style_set_line_width(&hour_line_style, LV_STATE_DEFAULT, width_hour_hand);
-  lv_style_set_line_color(&hour_line_style, LV_STATE_DEFAULT, color_hour_minute_hands);
+  lv_style_set_line_width(&hour_line_style, LV_STATE_DEFAULT, 5);
+  lv_style_set_line_color(&hour_line_style, LV_STATE_DEFAULT, LV_COLOR_BLACK);
   lv_style_set_line_rounded(&hour_line_style, LV_STATE_DEFAULT, true);
   lv_obj_add_style(hour_body, LV_LINE_PART_MAIN, &hour_line_style);
 
   lv_style_init(&hour_scale_style);
-  lv_style_set_line_width(&hour_scale_style, LV_STATE_DEFAULT, width_hour_scales);
-  lv_style_set_line_color(&hour_scale_style, LV_STATE_DEFAULT, color_hour_scales);
+  lv_style_set_line_width(&hour_scale_style, LV_STATE_DEFAULT, 4);
+  lv_style_set_line_color(&hour_scale_style, LV_STATE_DEFAULT, LV_COLOR_BLACK);
   lv_style_set_line_rounded(&hour_scale_style, LV_STATE_DEFAULT, false);
 
   lv_style_init(&backdrop_style);
   lv_style_set_bg_opa(&backdrop_style, LV_STATE_DEFAULT, LV_OPA_COVER);
-  lv_style_set_bg_color(&backdrop_style, LV_STATE_DEFAULT, color_bg_grad_top);
-  lv_style_set_bg_grad_color(&backdrop_style, LV_STATE_DEFAULT, color_bg_grad_bottom);
+  lv_style_set_bg_color(&backdrop_style, LV_STATE_DEFAULT, lv_color_hex(0xFDF8DC));
+  lv_style_set_bg_grad_color(&backdrop_style, LV_STATE_DEFAULT, lv_color_hex(0xA3AEB0));
   lv_style_set_bg_grad_dir(&backdrop_style, LV_STATE_DEFAULT, LV_GRAD_DIR_VER);
   lv_style_set_bg_grad_stop(&backdrop_style, LV_STATE_DEFAULT, 239); // TODO: replace 239 with screenheight-1
   lv_style_set_clip_corner(&backdrop_style, LV_STATE_DEFAULT, true);
@@ -175,18 +175,18 @@ void WatchFaceSquircle::UpdateClock() {
   uint8_t latest_hour = dateTimeController.Hours();
   uint8_t latest_minute = dateTimeController.Minutes();
   uint8_t latest_second = dateTimeController.Seconds();
-  lv_coord_t offset = 120; // TODO: replace with screenwidth/2
-  float r, t, cos_t, sin_t;
+  float r1, r2, t, cos_t, sin_t;
+#define offset 120
 
   if (latest_minute != minute) {
     minute = latest_minute;
-    minutef = static_cast<float>(minute);
 
-    t = ((minutef / 60) * TAU) - PI_2;
+    r1 = 100; // minute hand length
+    t = ((static_cast<float>(minute) / 60) * TAU) - PI_2;
     cos_t = cosf(t);
     sin_t = sinf(t);
 
-    NearestPoint(length_minute_hand * cos_t + offset, length_minute_hand * sin_t + offset, &minute_point[0]);
+    NearestPoint(r1 * cos_t + offset, r1 * sin_t + offset, &minute_point[0]);
     minute_point[1] = {offset, offset};
 
     lv_line_set_points(minute_body, minute_point, 2);
@@ -194,15 +194,13 @@ void WatchFaceSquircle::UpdateClock() {
 
   if (latest_hour != hour || latest_minute != minute) {
     hour = latest_hour;
-    hourf = static_cast<float>(hour);
-    twelveHour = hour % 12;
-    twelveHourf = static_cast<float>(twelveHour);
 
-    t = (twelveHourf * HOUR_SLICE - PI_2) + (minutef / 60 * HOUR_SLICE);
+    r1 = 70; // hour hand length
+    t = (static_cast<float>(hour % 12) * HOUR_SLICE - PI_2) + (static_cast<float>(minute) / 60 * HOUR_SLICE);
     cos_t = cosf(t);
     sin_t = sinf(t);
 
-    NearestPoint(length_hour_hand * cos_t + offset, length_hour_hand * sin_t + offset, &hour_point[0]);
+    NearestPoint(r1 * cos_t + offset, r1 * sin_t + offset, &hour_point[0]);
     hour_point[1] = {offset, offset};
 
     lv_line_set_points(hour_body, hour_point, 2);
@@ -210,14 +208,15 @@ void WatchFaceSquircle::UpdateClock() {
 
   if (latest_second != second) {
     second = latest_second;
-    secondf = static_cast<float>(second);
 
-    t = ((secondf / 60) * TAU) - PI_2;
+    r1 = 108; // second hand length
+    r2 = -30; // back part of second hand length
+    t = ((static_cast<float>(second) / 60) * TAU) - PI_2;
     cos_t = cosf(t);
     sin_t = sinf(t);
 
-    NearestPoint(length_second_hand * cos_t + offset, length_second_hand * sin_t + offset, &second_point[0]);
-    NearestPoint(length_second_hand_back * cos_t + offset, length_second_hand_back * sin_t + offset, &second_point[1]);
+    NearestPoint(r1 * cos_t + offset, r1 * sin_t + offset, &second_point[0]);
+    NearestPoint(r2 * cos_t + offset, r2 * sin_t + offset, &second_point[1]);
 
     lv_line_set_points(second_body, second_point, 2);
   }

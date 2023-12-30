@@ -44,8 +44,7 @@ namespace Pinetime {
         void Refresh() override;
 
       private:
-        uint8_t second, minute, hour, twelveHour;
-        float secondf, minutef, hourf, twelveHourf;
+        uint8_t second, minute, hour;
 
         Utility::DirtyValue<uint8_t> batteryPercentRemaining {0};
         Utility::DirtyValue<bool> isCharging {};
@@ -83,35 +82,15 @@ namespace Pinetime {
         lv_obj_t* heartbeatIcon;
         lv_obj_t* heartbeatValue;
 
-        line_segment scales[12];
-
-        const lv_color_t color_bg_grad_top = lv_color_hex(0xFDF8DC);
-        const lv_color_t color_bg_grad_bottom = lv_color_hex(0xA3AEB0);
-        const lv_color_t color_hour_scales = LV_COLOR_BLACK;
-        const lv_color_t color_hour_minute_hands = LV_COLOR_BLACK;
-        const lv_color_t color_second_hand = LV_COLOR_RED;
-        const lv_color_t color_date = LV_COLOR_BLACK;
-        const lv_color_t color_time = LV_COLOR_BLACK;
-        const lv_color_t color_battery_high = LV_COLOR_BLACK;
-        const lv_color_t color_battery_low = Colors::deepOrange;
-        const lv_color_t color_battery_critical = LV_COLOR_RED;
-        const lv_style_int_t width_hour_hand = 5;
-        const lv_style_int_t width_minute_hand = 5;
-        const lv_style_int_t width_second_hand = 2;
-        const lv_style_int_t width_hour_scales = 4;
-        const float length_minute_hand = 100;
-        const float length_hour_hand = 70;
-        const float length_second_hand = 108;
-        const float length_second_hand_back = -30;
-
-        BatteryIcon batteryIcon;
+        line_segment scales[12]; // TODO: replace with runtime drawing?
 
         const Controllers::DateTime& dateTimeController;
         const Controllers::Battery& batteryController;
         const Controllers::Ble& bleController;
         Controllers::NotificationManager& notificationManager;
-        Controllers::Settings& settingsController;
         Controllers::HeartRateController& heartRateController;
+        Controllers::Settings& settingsController;
+        BatteryIcon batteryIcon;
 
         void UpdateClock();
         void SetBatteryIcon();
