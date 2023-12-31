@@ -114,17 +114,17 @@ WatchFaceSquircle::WatchFaceSquircle(Controllers::DateTime& dateTimeController,
   lv_obj_add_style(second_body, LV_LINE_PART_MAIN, &second_line_style);
 
   lv_style_init(&minute_line_style);
-  lv_style_set_line_width(&minute_line_style, LV_STATE_DEFAULT, 5);
+  lv_style_set_line_width(&minute_line_style, LV_STATE_DEFAULT, 7);
   lv_style_set_line_color(&minute_line_style, LV_STATE_DEFAULT, LV_COLOR_BLACK);
   lv_style_set_line_rounded(&minute_line_style, LV_STATE_DEFAULT, true);
   lv_style_set_line_opa(&minute_line_style, LV_STATE_DEFAULT, LV_OPA_80);
   lv_obj_add_style(minute_body, LV_LINE_PART_MAIN, &minute_line_style);
 
   lv_style_init(&hour_line_style);
-  lv_style_set_line_width(&hour_line_style, LV_STATE_DEFAULT, 6);
+  lv_style_set_line_width(&hour_line_style, LV_STATE_DEFAULT, 8);
   lv_style_set_line_color(&hour_line_style, LV_STATE_DEFAULT, LV_COLOR_BLACK);
   lv_style_set_line_rounded(&hour_line_style, LV_STATE_DEFAULT, true);
-  lv_style_set_line_opa(&hour_line_style, LV_STATE_DEFAULT, LV_OPA_70);
+  lv_style_set_line_opa(&hour_line_style, LV_STATE_DEFAULT, LV_OPA_80);
   lv_obj_add_style(hour_body, LV_LINE_PART_MAIN, &hour_line_style);
 
   lv_style_init(&large_scale_style);
