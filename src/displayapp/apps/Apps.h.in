@@ -52,6 +52,7 @@ namespace Pinetime {
       Infineat,
       CasioStyleG7710,
       Squircle,
+      Fir,
     };
 
     template <Apps>
@@ -78,7 +79,8 @@ namespace Pinetime {
                                                  WatchFace::Terminal,
                                                  WatchFace::Infineat,
                                                  WatchFace::CasioStyleG7710,
-                                                 WatchFace::Squircle>;
+                                                 WatchFace::Squircle,
+                                                 WatchFace::Fir>;
 
     static_assert(UserWatchFaceTypes::Count >= 1);
   }

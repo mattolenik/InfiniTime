@@ -107,7 +107,7 @@ namespace Pinetime {
         void NearestPoint(float x, float y, lv_point_t* point);
 
         template <size_t N>
-        void CalculateSquircleRadii(lv_obj_t* (&line_objs)[N], float size, float n, float a, float b);
+        void SetSquirclePoints(lv_obj_t* (&line_objs)[N], float size, float n, float a, float b);
 
         lv_task_t* taskRefresh;
       };

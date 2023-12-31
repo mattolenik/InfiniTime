@@ -166,7 +166,7 @@ WatchFaceSquircle::WatchFaceSquircle(Controllers::DateTime& dateTimeController,
   lv_obj_add_style(time_box, LV_OBJ_PART_MAIN, &time_box_style);
 
   float maxRadius = fmin(disp_width, disp_height) / 2;
-  CalculateSquircleRadii(scale_line_objs, maxRadius * 0.98, 2.4, 1, 1);
+  SetSquirclePoints(scale_line_objs, maxRadius * 0.98, 2.4, 1, 1);
 
   taskRefresh = lv_task_create(RefreshTaskCallback, LV_DISP_DEF_REFR_PERIOD, LV_TASK_PRIO_MID, this);
 
@@ -195,7 +195,7 @@ void WatchFaceSquircle::NearestPoint(float x, float y, lv_point_t* point) {
 }
 
 template <size_t N>
-void WatchFaceSquircle::CalculateSquircleRadii(lv_obj_t* (&line_objs)[N], float size, float n, float a, float b) {
+void WatchFaceSquircle::SetSquirclePoints(lv_obj_t* (&line_objs)[N], float size, float n, float a, float b) {
   float inverse_n = -1.0 / n;
   float scale;
   for (size_t i = 0; i < N; i++) {
