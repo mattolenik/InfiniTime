@@ -111,7 +111,7 @@ WatchFaceSquircle::WatchFaceSquircle(Controllers::DateTime& dateTimeController,
   lv_obj_add_style(hour_body, LV_LINE_PART_MAIN, &hour_line_style);
 
   lv_style_init(&hour_scale_style);
-  lv_style_set_line_width(&hour_scale_style, LV_STATE_DEFAULT, 4);
+  lv_style_set_line_width(&hour_scale_style, LV_STATE_DEFAULT, 6);
   lv_style_set_line_color(&hour_scale_style, LV_STATE_DEFAULT, LV_COLOR_BLACK);
   lv_style_set_line_rounded(&hour_scale_style, LV_STATE_DEFAULT, false);
 
@@ -131,7 +131,7 @@ WatchFaceSquircle::WatchFaceSquircle(Controllers::DateTime& dateTimeController,
   }
 
   float maxRadius = fmin(disp_width, disp_height) / 2;
-  CalculateSquircleRadii(hour_scale_line_objs, maxRadius * 0.97, 2.4, 1, 1);
+  CalculateSquircleRadii(hour_scale_line_objs, maxRadius, 2.4, 1, 1);
 
   taskRefresh = lv_task_create(RefreshTaskCallback, LV_DISP_DEF_REFR_PERIOD, LV_TASK_PRIO_MID, this);
 
