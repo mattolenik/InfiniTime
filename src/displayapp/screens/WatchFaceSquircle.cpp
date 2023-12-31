@@ -117,12 +117,14 @@ WatchFaceSquircle::WatchFaceSquircle(Controllers::DateTime& dateTimeController,
   lv_style_set_line_width(&minute_line_style, LV_STATE_DEFAULT, 5);
   lv_style_set_line_color(&minute_line_style, LV_STATE_DEFAULT, LV_COLOR_BLACK);
   lv_style_set_line_rounded(&minute_line_style, LV_STATE_DEFAULT, true);
+  lv_style_set_line_opa(&minute_line_style, LV_STATE_DEFAULT, LV_OPA_80);
   lv_obj_add_style(minute_body, LV_LINE_PART_MAIN, &minute_line_style);
 
   lv_style_init(&hour_line_style);
-  lv_style_set_line_width(&hour_line_style, LV_STATE_DEFAULT, 5);
+  lv_style_set_line_width(&hour_line_style, LV_STATE_DEFAULT, 6);
   lv_style_set_line_color(&hour_line_style, LV_STATE_DEFAULT, LV_COLOR_BLACK);
   lv_style_set_line_rounded(&hour_line_style, LV_STATE_DEFAULT, true);
+  lv_style_set_line_opa(&hour_line_style, LV_STATE_DEFAULT, LV_OPA_70);
   lv_obj_add_style(hour_body, LV_LINE_PART_MAIN, &hour_line_style);
 
   lv_style_init(&large_scale_style);
@@ -250,7 +252,8 @@ void WatchFaceSquircle::UpdateClock() {
   uint8_t latest_second = dateTimeController.Seconds();
   float r1, r2, t, cos_t, sin_t;
 
-  if (latest_minute != minute) {
+  bool minute_needs_update = latest_minute != minute;
+  if (minute_needs_update) {
     minute = latest_minute;
 
     r1 = 100; // minute hand length
@@ -264,8 +267,9 @@ void WatchFaceSquircle::UpdateClock() {
     lv_line_set_points(minute_body, minute_point, 2);
   }
 
-  if (latest_hour != hour || latest_minute != minute) {
+  if (latest_hour != hour || minute_needs_update) {
     hour = latest_hour;
+    minute = latest_minute;
 
     r1 = 70; // hour hand length
     t = (static_cast<float>(hour % 12) * HOUR_SLICE - PI_2) + (static_cast<float>(minute) / 60 * HOUR_SLICE);
@@ -277,7 +281,7 @@ void WatchFaceSquircle::UpdateClock() {
 
     lv_line_set_points(hour_body, hour_point, 2);
 
-    lv_label_set_text_fmt(label_time, "%02i:%02i", hour % 12, minute);
+    lv_label_set_text_fmt(label_time, "%02i:%02i", latest_hour % 12, latest_minute);
   }
 
   if (latest_second != second) {
