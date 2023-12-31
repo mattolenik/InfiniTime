@@ -47,7 +47,7 @@ WatchFaceSquircle::WatchFaceSquircle(Controllers::DateTime& dateTimeController,
   twelve = lv_label_create(lv_scr_act(), nullptr);
   lv_label_set_align(twelve, LV_LABEL_ALIGN_CENTER);
   lv_label_set_text_static(twelve, "12");
-  lv_obj_set_pos(twelve, 110, 10);
+  lv_obj_set_pos(twelve, center_x - 10, -2);
   lv_obj_set_style_local_text_color(twelve, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_BLACK);
 
   batteryIcon.Create(lv_scr_act());
@@ -86,7 +86,7 @@ WatchFaceSquircle::WatchFaceSquircle(Controllers::DateTime& dateTimeController,
   label_date_day = lv_label_create(lv_scr_act(), nullptr);
   lv_obj_set_style_local_text_color(label_date_day, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_BLACK);
   lv_label_set_align(label_date_day, LV_LABEL_ALIGN_LEFT);
-  lv_obj_align(label_date_day, nullptr, LV_ALIGN_CENTER, 45, 0);
+  lv_obj_align(label_date_day, nullptr, LV_ALIGN_IN_RIGHT_MID, -40, 0);
 
   minute_body = lv_line_create(backdrop, nullptr);
   hour_body = lv_line_create(backdrop, nullptr);
@@ -110,10 +110,22 @@ WatchFaceSquircle::WatchFaceSquircle(Controllers::DateTime& dateTimeController,
   lv_style_set_line_rounded(&hour_line_style, LV_STATE_DEFAULT, true);
   lv_obj_add_style(hour_body, LV_LINE_PART_MAIN, &hour_line_style);
 
-  lv_style_init(&hour_scale_style);
-  lv_style_set_line_width(&hour_scale_style, LV_STATE_DEFAULT, 6);
-  lv_style_set_line_color(&hour_scale_style, LV_STATE_DEFAULT, LV_COLOR_BLACK);
-  lv_style_set_line_rounded(&hour_scale_style, LV_STATE_DEFAULT, false);
+  lv_style_init(&large_scale_style);
+  lv_style_set_line_width(&large_scale_style, LV_STATE_DEFAULT, 3);
+  lv_style_set_line_color(&large_scale_style, LV_STATE_DEFAULT, LV_COLOR_BLACK);
+  lv_style_set_line_rounded(&large_scale_style, LV_STATE_DEFAULT, true);
+
+  lv_style_init(&medium_scale_style);
+  lv_style_set_line_width(&medium_scale_style, LV_STATE_DEFAULT, 2);
+  lv_style_set_line_color(&medium_scale_style, LV_STATE_DEFAULT, LV_COLOR_BLACK);
+  lv_style_set_line_opa(&medium_scale_style, LV_STATE_DEFAULT, LV_OPA_70);
+  lv_style_set_line_rounded(&medium_scale_style, LV_STATE_DEFAULT, false);
+
+  lv_style_init(&small_scale_style);
+  lv_style_set_line_width(&small_scale_style, LV_STATE_DEFAULT, 1);
+  lv_style_set_line_color(&small_scale_style, LV_STATE_DEFAULT, LV_COLOR_BLACK);
+  lv_style_set_line_opa(&small_scale_style, LV_STATE_DEFAULT, LV_OPA_20);
+  lv_style_set_line_rounded(&small_scale_style, LV_STATE_DEFAULT, false);
 
   lv_style_init(&backdrop_style);
   lv_style_set_bg_opa(&backdrop_style, LV_STATE_DEFAULT, LV_OPA_COVER);
@@ -125,13 +137,11 @@ WatchFaceSquircle::WatchFaceSquircle(Controllers::DateTime& dateTimeController,
   lv_style_set_radius(&backdrop_style, LV_STATE_DEFAULT, 12);
   lv_obj_add_style(backdrop, LV_OBJ_PART_MAIN, &backdrop_style);
 
-  for (int i = 0; i < 12; i++) {
-    hour_scale_line_objs[i] = lv_line_create(lv_scr_act(), nullptr);
-    lv_obj_add_style(hour_scale_line_objs[i], LV_LINE_PART_MAIN, &hour_scale_style);
+  for (int i = 0; i < 60; i++) {
   }
 
   float maxRadius = fmin(disp_width, disp_height) / 2;
-  CalculateSquircleRadii(hour_scale_line_objs, maxRadius, 2.4, 1, 1);
+  CalculateSquircleRadii(scale_line_objs, maxRadius * 0.98, 2.4, 1, 1);
 
   taskRefresh = lv_task_create(RefreshTaskCallback, LV_DISP_DEF_REFR_PERIOD, LV_TASK_PRIO_MID, this);
 
@@ -144,7 +154,10 @@ WatchFaceSquircle::~WatchFaceSquircle() {
   lv_style_reset(&hour_line_style);
   lv_style_reset(&minute_line_style);
   lv_style_reset(&second_line_style);
-  lv_style_reset(&hour_scale_style);
+  lv_style_reset(&large_scale_style);
+  lv_style_reset(&medium_scale_style);
+  lv_style_reset(&small_scale_style);
+  lv_style_reset(&backdrop_style);
 
   lv_obj_clean(lv_scr_act());
 }
@@ -159,14 +172,51 @@ void WatchFaceSquircle::NearestPoint(float x, float y, lv_point_t* point) {
 template <size_t N>
 void WatchFaceSquircle::CalculateSquircleRadii(lv_obj_t* (&line_objs)[N], float size, float n, float a, float b) {
   float inverse_n = -1.0 / n;
+  float scale;
   for (size_t i = 0; i < N; i++) {
+    switch (i) {
+      // 3
+      // case 0:
+      // case 1:
+      // case 59:
+      // 6
+      case 14:
+      case 15:
+      case 16:
+      // 9
+      case 30:
+      case 31:
+      case 32:
+      // 12
+      case 44:
+      case 45:
+      case 46:
+        continue;
+      case 5:
+      case 10:
+      case 20:
+      case 25:
+      case 35:
+      case 40:
+      case 50:
+      case 55:
+        scale_line_objs[i] = lv_line_create(lv_scr_act(), nullptr);
+        lv_obj_add_style(scale_line_objs[i], LV_LINE_PART_MAIN, &medium_scale_style);
+        scale = 0.92;
+        break;
+      default:
+        scale_line_objs[i] = lv_line_create(lv_scr_act(), nullptr);
+        lv_obj_add_style(scale_line_objs[i], LV_LINE_PART_MAIN, &small_scale_style);
+        scale = 0.95;
+        break;
+    }
     float theta = (static_cast<float>(i) / static_cast<float>(N)) * TAU;
     float cos_t = cosf(theta);
     float sin_t = sinf(theta);
     // The superellipse formula gives the radius for use in a polar coordinate, name it (r, theta)
     // Theta is already known, use the formula to get the radius:
     float r1 = powf(powf(fabs(cos_t / a), n) + powf(fabs(sin_t / a), n), inverse_n) * size;
-    float r2 = r1 * 0.90;
+    float r2 = r1 * scale;
     NearestPoint(r1 * cosf(theta) + center_x, r1 * sinf(theta) + center_x, &scales[i].points[0]);
     NearestPoint(r2 * cosf(theta) + center_y, r2 * sinf(theta) + center_y, &scales[i].points[1]);
     lv_line_set_points(line_objs[i], scales[i].points, 2);

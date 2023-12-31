@@ -63,7 +63,8 @@ namespace Pinetime {
         lv_obj_t* minute_body;
         lv_obj_t* second_body;
         lv_obj_t* backdrop;
-        lv_obj_t* hour_scale_line_objs[12];
+        lv_obj_t* scale_line_objs[60];
+        line_segment scales[60];
 
         lv_point_t hour_point[2];
         lv_point_t minute_point[2];
@@ -72,7 +73,9 @@ namespace Pinetime {
         lv_style_t hour_line_style;
         lv_style_t minute_line_style;
         lv_style_t second_line_style;
-        lv_style_t hour_scale_style;
+        lv_style_t large_scale_style;
+        lv_style_t medium_scale_style;
+        lv_style_t small_scale_style;
         lv_style_t backdrop_style;
 
         lv_obj_t* label_date_day;
@@ -81,8 +84,6 @@ namespace Pinetime {
         lv_obj_t* bleIcon;
         lv_obj_t* heartbeatIcon;
         lv_obj_t* heartbeatValue;
-
-        line_segment scales[12]; // TODO: replace with runtime drawing?
 
         lv_coord_t center_x;
         lv_coord_t center_y;
