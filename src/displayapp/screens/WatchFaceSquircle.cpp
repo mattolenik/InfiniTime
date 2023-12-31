@@ -46,7 +46,12 @@ WatchFaceSquircle::WatchFaceSquircle(Controllers::DateTime& dateTimeController,
 
   time_box = lv_obj_create(backdrop, nullptr);
   lv_obj_set_size(time_box, 75, 26);
-  lv_obj_align(time_box, nullptr, LV_ALIGN_IN_LEFT_MID, 12, 1);
+  lv_obj_align(time_box, nullptr, LV_ALIGN_IN_LEFT_MID, 5, 0);
+
+  label_time = lv_label_create(time_box, nullptr);
+  lv_obj_set_style_local_text_color(label_time, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0xFDF8DC));
+  lv_label_set_align(label_time, LV_LABEL_ALIGN_CENTER);
+  lv_obj_align(label_time, nullptr, LV_ALIGN_IN_LEFT_MID, 7, -1);
 
   twelve = lv_label_create(backdrop, nullptr);
   lv_label_set_align(twelve, LV_LABEL_ALIGN_CENTER);
@@ -95,13 +100,8 @@ WatchFaceSquircle::WatchFaceSquircle(Controllers::DateTime& dateTimeController,
 
   label_date_day = lv_label_create(backdrop, nullptr);
   lv_obj_set_style_local_text_color(label_date_day, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0x333333));
-  lv_label_set_align(label_date_day, LV_LABEL_ALIGN_LEFT);
-  lv_obj_align(label_date_day, nullptr, LV_ALIGN_IN_RIGHT_MID, -40, 0);
-
-  label_time = lv_label_create(backdrop, nullptr);
-  lv_obj_set_style_local_text_color(label_time, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0xFDF8DC));
-  lv_label_set_align(label_time, LV_LABEL_ALIGN_LEFT);
-  lv_obj_align(label_time, nullptr, LV_ALIGN_IN_LEFT_MID, 19, 0);
+  lv_label_set_align(label_date_day, LV_LABEL_ALIGN_RIGHT);
+  lv_obj_align(label_date_day, nullptr, LV_ALIGN_IN_RIGHT_MID, -27, 0);
 
   minute_body = lv_line_create(backdrop, nullptr);
   hour_body = lv_line_create(backdrop, nullptr);
@@ -204,13 +204,20 @@ void WatchFaceSquircle::CalculateSquircleRadii(lv_obj_t* (&line_objs)[N], float 
       case 15:
         continue;
       // 3 and 9
+      case 59:
       case 0:
+      case 1:
+      case 29:
       case 30:
-        scale_line_objs[i] = lv_line_create(lv_scr_act(), nullptr);
-        lv_obj_add_style(scale_line_objs[i], LV_LINE_PART_MAIN, &large_scale_style);
-        scale = 0.95;
-        break;
-      // 12
+      case 31:
+        continue;
+      // case 0:
+      // case 30:
+      //   scale_line_objs[i] = lv_line_create(lv_scr_act(), nullptr);
+      //   lv_obj_add_style(scale_line_objs[i], LV_LINE_PART_MAIN, &large_scale_style);
+      //   scale = 0.95;
+      //   break;
+      //  12
       case 44:
       case 45:
       case 46:
