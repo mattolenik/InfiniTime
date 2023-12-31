@@ -44,49 +44,64 @@ WatchFaceSquircle::WatchFaceSquircle(Controllers::DateTime& dateTimeController,
   lv_obj_set_size(backdrop, 240, 240);
   lv_obj_align(backdrop, nullptr, LV_ALIGN_IN_TOP_LEFT, 0, 0);
 
-  twelve = lv_label_create(lv_scr_act(), nullptr);
+  time_box = lv_obj_create(backdrop, nullptr);
+  lv_obj_set_size(time_box, 75, 26);
+  lv_obj_align(time_box, nullptr, LV_ALIGN_IN_LEFT_MID, 12, 1);
+
+  twelve = lv_label_create(backdrop, nullptr);
   lv_label_set_align(twelve, LV_LABEL_ALIGN_CENTER);
   lv_label_set_text_static(twelve, "12");
   lv_obj_set_pos(twelve, center_x - 10, -2);
   lv_obj_set_style_local_text_color(twelve, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_BLACK);
 
-  batteryIcon.Create(lv_scr_act());
+  six = lv_label_create(backdrop, nullptr);
+  lv_label_set_align(six, LV_LABEL_ALIGN_CENTER);
+  lv_label_set_text_static(six, "6");
+  lv_obj_set_pos(six, center_x - 6, disp_height - 22);
+  lv_obj_set_style_local_text_color(six, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_BLACK);
+
+  batteryIcon.Create(backdrop);
   lv_obj_align(batteryIcon.GetObject(), nullptr, LV_ALIGN_IN_TOP_RIGHT, -6, 6);
 
-  plugIcon = lv_label_create(lv_scr_act(), nullptr);
+  plugIcon = lv_label_create(backdrop, nullptr);
   lv_label_set_text_static(plugIcon, Symbols::plug);
   lv_obj_set_style_local_text_color(plugIcon, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_BLACK);
   lv_obj_set_style_local_text_opa(plugIcon, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, 80);
   lv_obj_align(plugIcon, nullptr, LV_ALIGN_IN_TOP_RIGHT, -6, 6);
 
-  bleIcon = lv_label_create(lv_scr_act(), nullptr);
+  bleIcon = lv_label_create(backdrop, nullptr);
   lv_label_set_text_static(bleIcon, Symbols::bluetooth);
   lv_obj_set_style_local_text_opa(bleIcon, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, 80);
   lv_obj_set_style_local_text_color(bleIcon, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_BLUE);
   lv_obj_align(bleIcon, nullptr, LV_ALIGN_IN_BOTTOM_RIGHT, -4, -4);
 
-  heartbeatIcon = lv_label_create(lv_scr_act(), nullptr);
+  heartbeatIcon = lv_label_create(backdrop, nullptr);
   lv_label_set_text_static(heartbeatIcon, Symbols::heartBeat);
   lv_obj_set_style_local_text_color(heartbeatIcon, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0xCE1B1B));
   lv_obj_set_style_local_text_opa(heartbeatIcon, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, 80);
   lv_obj_align(heartbeatIcon, lv_scr_act(), LV_ALIGN_IN_BOTTOM_LEFT, 3, -3);
 
-  heartbeatValue = lv_label_create(lv_scr_act(), nullptr);
+  heartbeatValue = lv_label_create(backdrop, nullptr);
   lv_obj_set_style_local_text_color(heartbeatValue, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0xCE1B1B));
   lv_label_set_text_static(heartbeatValue, "");
   lv_obj_align(heartbeatValue, heartbeatIcon, LV_ALIGN_OUT_RIGHT_MID, 5, 0);
 
-  notificationIcon = lv_label_create(lv_scr_act(), nullptr);
+  notificationIcon = lv_label_create(backdrop, nullptr);
   lv_obj_set_style_local_text_color(notificationIcon, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_BLACK);
   lv_label_set_text_static(notificationIcon, NotificationIcon::GetIcon(false));
   lv_obj_align(notificationIcon, nullptr, LV_ALIGN_IN_TOP_LEFT, 0, 0);
 
   // Date - Day / Week day
 
-  label_date_day = lv_label_create(lv_scr_act(), nullptr);
-  lv_obj_set_style_local_text_color(label_date_day, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_BLACK);
+  label_date_day = lv_label_create(backdrop, nullptr);
+  lv_obj_set_style_local_text_color(label_date_day, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0x333333));
   lv_label_set_align(label_date_day, LV_LABEL_ALIGN_LEFT);
   lv_obj_align(label_date_day, nullptr, LV_ALIGN_IN_RIGHT_MID, -40, 0);
+
+  label_time = lv_label_create(backdrop, nullptr);
+  lv_obj_set_style_local_text_color(label_time, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0xFDF8DC));
+  lv_label_set_align(label_time, LV_LABEL_ALIGN_LEFT);
+  lv_obj_align(label_time, nullptr, LV_ALIGN_IN_LEFT_MID, 19, 0);
 
   minute_body = lv_line_create(backdrop, nullptr);
   hour_body = lv_line_create(backdrop, nullptr);
@@ -111,9 +126,10 @@ WatchFaceSquircle::WatchFaceSquircle(Controllers::DateTime& dateTimeController,
   lv_obj_add_style(hour_body, LV_LINE_PART_MAIN, &hour_line_style);
 
   lv_style_init(&large_scale_style);
-  lv_style_set_line_width(&large_scale_style, LV_STATE_DEFAULT, 3);
+  lv_style_set_line_width(&large_scale_style, LV_STATE_DEFAULT, 1);
   lv_style_set_line_color(&large_scale_style, LV_STATE_DEFAULT, LV_COLOR_BLACK);
-  lv_style_set_line_rounded(&large_scale_style, LV_STATE_DEFAULT, true);
+  lv_style_set_line_opa(&large_scale_style, LV_STATE_DEFAULT, LV_OPA_20);
+  lv_style_set_line_rounded(&large_scale_style, LV_STATE_DEFAULT, false);
 
   lv_style_init(&medium_scale_style);
   lv_style_set_line_width(&medium_scale_style, LV_STATE_DEFAULT, 2);
@@ -137,8 +153,15 @@ WatchFaceSquircle::WatchFaceSquircle(Controllers::DateTime& dateTimeController,
   lv_style_set_radius(&backdrop_style, LV_STATE_DEFAULT, 12);
   lv_obj_add_style(backdrop, LV_OBJ_PART_MAIN, &backdrop_style);
 
-  for (int i = 0; i < 60; i++) {
-  }
+  lv_style_init(&time_box_style);
+  lv_style_set_bg_opa(&time_box_style, LV_STATE_DEFAULT, LV_OPA_70);
+  lv_style_set_bg_color(&time_box_style, LV_STATE_DEFAULT, lv_color_hex(0x333333));
+  lv_style_set_bg_grad_color(&time_box_style, LV_STATE_DEFAULT, lv_color_hex(0x000000));
+  lv_style_set_bg_grad_dir(&time_box_style, LV_STATE_DEFAULT, LV_GRAD_DIR_VER);
+  lv_style_set_bg_grad_stop(&time_box_style, LV_STATE_DEFAULT, disp_height - 1);
+  lv_style_set_clip_corner(&time_box_style, LV_STATE_DEFAULT, true);
+  lv_style_set_radius(&time_box_style, LV_STATE_DEFAULT, 8);
+  lv_obj_add_style(time_box, LV_OBJ_PART_MAIN, &time_box_style);
 
   float maxRadius = fmin(disp_width, disp_height) / 2;
   CalculateSquircleRadii(scale_line_objs, maxRadius * 0.98, 2.4, 1, 1);
@@ -175,18 +198,16 @@ void WatchFaceSquircle::CalculateSquircleRadii(lv_obj_t* (&line_objs)[N], float 
   float scale;
   for (size_t i = 0; i < N; i++) {
     switch (i) {
-      // 3
-      // case 0:
-      // case 1:
-      // case 59:
       // 6
-      case 14:
       case 15:
-      case 16:
-      // 9
+        continue;
+      // 3 and 9
+      case 0:
       case 30:
-      case 31:
-      case 32:
+        scale_line_objs[i] = lv_line_create(lv_scr_act(), nullptr);
+        lv_obj_add_style(scale_line_objs[i], LV_LINE_PART_MAIN, &large_scale_style);
+        scale = 0.95;
+        break;
       // 12
       case 44:
       case 45:
@@ -255,6 +276,8 @@ void WatchFaceSquircle::UpdateClock() {
     hour_point[1] = {center_x, center_y};
 
     lv_line_set_points(hour_body, hour_point, 2);
+
+    lv_label_set_text_fmt(label_time, "%02i:%02i", hour % 12, minute);
   }
 
   if (latest_second != second) {

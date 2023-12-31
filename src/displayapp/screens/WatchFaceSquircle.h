@@ -58,11 +58,13 @@ namespace Pinetime {
         Utility::DirtyValue<bool> heartbeatRunning {};
 
         lv_obj_t* twelve;
+        lv_obj_t* six;
 
         lv_obj_t* hour_body;
         lv_obj_t* minute_body;
         lv_obj_t* second_body;
         lv_obj_t* backdrop;
+        lv_obj_t* time_box;
         lv_obj_t* scale_line_objs[60];
         line_segment scales[60];
 
@@ -77,8 +79,10 @@ namespace Pinetime {
         lv_style_t medium_scale_style;
         lv_style_t small_scale_style;
         lv_style_t backdrop_style;
+        lv_style_t time_box_style;
 
         lv_obj_t* label_date_day;
+        lv_obj_t* label_time;
         lv_obj_t* plugIcon;
         lv_obj_t* notificationIcon;
         lv_obj_t* bleIcon;
