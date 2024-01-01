@@ -64,8 +64,10 @@ namespace Pinetime {
         lv_obj_t* minute_body;
         lv_obj_t* second_body;
         lv_obj_t* backdrop;
+        lv_obj_t* backdrop_mask;
         lv_obj_t* time_box;
         lv_obj_t* scale_line_objs[60];
+        lv_obj_t* mask_container;
         line_segment scales[60];
 
         lv_point_t hour_point[2];
@@ -89,8 +91,12 @@ namespace Pinetime {
         lv_obj_t* heartbeatIcon;
         lv_obj_t* heartbeatValue;
 
+        lv_color_t backdrop_gradient[2];
+        lv_draw_mask_line_param_t params[60];
+
         lv_coord_t center_x;
         lv_coord_t center_y;
+        lv_area_t screen_area;
 
         const Controllers::DateTime& dateTimeController;
         const Controllers::Battery& batteryController;

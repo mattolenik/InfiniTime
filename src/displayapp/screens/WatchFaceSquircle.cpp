@@ -1,5 +1,6 @@
 #include "displayapp/screens/WatchFaceSquircle.h"
 #include <cmath>
+#include <iostream>
 #include <lvgl/lvgl.h>
 #include "displayapp/screens/BatteryIcon.h"
 #include "displayapp/screens/BleIcon.h"
@@ -39,12 +40,20 @@ WatchFaceSquircle::WatchFaceSquircle(Controllers::DateTime& dateTimeController,
   lv_coord_t disp_height = lv_disp_get_ver_res(display);
   center_x = disp_width / 2;
   center_y = disp_height / 2;
+  screen_area = {0, 0, 239, 239};
 
-  backdrop = lv_obj_create(lv_scr_act(), nullptr);
-  lv_obj_set_size(backdrop, 240, 240);
-  lv_obj_align(backdrop, nullptr, LV_ALIGN_IN_TOP_LEFT, 0, 0);
+  backdrop_gradient[0] = lv_color_hex(0x003E6D);
+  backdrop_gradient[1] = lv_color_hex(0xFCFAEF);
 
-  time_box = lv_obj_create(backdrop, nullptr);
+  backdrop_mask = lv_objmask_create(lv_scr_act(), nullptr);
+  lv_obj_set_size(backdrop_mask, 240, 240);
+  lv_obj_set_pos(backdrop_mask, 0, 0);
+
+  backdrop = lv_obj_create(backdrop_mask, nullptr);
+  lv_obj_set_size(backdrop, disp_width, disp_height);
+  lv_obj_set_pos(backdrop, 0, 0);
+
+  time_box = lv_obj_create(lv_scr_act(), nullptr);
   lv_obj_set_size(time_box, 75, 26);
   lv_obj_align(time_box, nullptr, LV_ALIGN_IN_LEFT_MID, 5, 0);
 
@@ -53,59 +62,59 @@ WatchFaceSquircle::WatchFaceSquircle(Controllers::DateTime& dateTimeController,
   lv_label_set_align(label_time, LV_LABEL_ALIGN_CENTER);
   lv_obj_align(label_time, nullptr, LV_ALIGN_IN_LEFT_MID, 7, -1);
 
-  twelve = lv_label_create(backdrop, nullptr);
+  twelve = lv_label_create(lv_scr_act(), nullptr);
   lv_label_set_align(twelve, LV_LABEL_ALIGN_CENTER);
   lv_label_set_text_static(twelve, "12");
   lv_obj_set_pos(twelve, center_x - 10, -2);
   lv_obj_set_style_local_text_color(twelve, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_BLACK);
 
-  six = lv_label_create(backdrop, nullptr);
+  six = lv_label_create(lv_scr_act(), nullptr);
   lv_label_set_align(six, LV_LABEL_ALIGN_CENTER);
   lv_label_set_text_static(six, "6");
   lv_obj_set_pos(six, center_x - 6, disp_height - 22);
   lv_obj_set_style_local_text_color(six, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_BLACK);
 
-  batteryIcon.Create(backdrop);
+  batteryIcon.Create(lv_scr_act());
   lv_obj_align(batteryIcon.GetObject(), nullptr, LV_ALIGN_IN_TOP_RIGHT, -6, 6);
 
-  plugIcon = lv_label_create(backdrop, nullptr);
+  plugIcon = lv_label_create(lv_scr_act(), nullptr);
   lv_label_set_text_static(plugIcon, Symbols::plug);
   lv_obj_set_style_local_text_color(plugIcon, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_BLACK);
   lv_obj_set_style_local_text_opa(plugIcon, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, 80);
   lv_obj_align(plugIcon, nullptr, LV_ALIGN_IN_TOP_RIGHT, -6, 6);
 
-  bleIcon = lv_label_create(backdrop, nullptr);
+  bleIcon = lv_label_create(lv_scr_act(), nullptr);
   lv_label_set_text_static(bleIcon, Symbols::bluetooth);
   lv_obj_set_style_local_text_opa(bleIcon, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, 80);
   lv_obj_set_style_local_text_color(bleIcon, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_BLUE);
   lv_obj_align(bleIcon, nullptr, LV_ALIGN_IN_BOTTOM_RIGHT, -4, -4);
 
-  heartbeatIcon = lv_label_create(backdrop, nullptr);
+  heartbeatIcon = lv_label_create(lv_scr_act(), nullptr);
   lv_label_set_text_static(heartbeatIcon, Symbols::heartBeat);
   lv_obj_set_style_local_text_color(heartbeatIcon, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0xCE1B1B));
   lv_obj_set_style_local_text_opa(heartbeatIcon, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, 80);
   lv_obj_align(heartbeatIcon, lv_scr_act(), LV_ALIGN_IN_BOTTOM_LEFT, 3, -3);
 
-  heartbeatValue = lv_label_create(backdrop, nullptr);
+  heartbeatValue = lv_label_create(lv_scr_act(), nullptr);
   lv_obj_set_style_local_text_color(heartbeatValue, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0xCE1B1B));
   lv_label_set_text_static(heartbeatValue, "");
   lv_obj_align(heartbeatValue, heartbeatIcon, LV_ALIGN_OUT_RIGHT_MID, 5, 0);
 
-  notificationIcon = lv_label_create(backdrop, nullptr);
+  notificationIcon = lv_label_create(lv_scr_act(), nullptr);
   lv_obj_set_style_local_text_color(notificationIcon, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_BLACK);
   lv_label_set_text_static(notificationIcon, NotificationIcon::GetIcon(false));
   lv_obj_align(notificationIcon, nullptr, LV_ALIGN_IN_TOP_LEFT, 0, 0);
 
   // Date - Day / Week day
 
-  label_date_day = lv_label_create(backdrop, nullptr);
+  label_date_day = lv_label_create(lv_scr_act(), nullptr);
   lv_obj_set_style_local_text_color(label_date_day, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0x333333));
   lv_label_set_align(label_date_day, LV_LABEL_ALIGN_RIGHT);
   lv_obj_align(label_date_day, nullptr, LV_ALIGN_IN_RIGHT_MID, -27, 0);
 
-  minute_body = lv_line_create(backdrop, nullptr);
-  hour_body = lv_line_create(backdrop, nullptr);
-  second_body = lv_line_create(backdrop, nullptr);
+  minute_body = lv_line_create(lv_scr_act(), nullptr);
+  hour_body = lv_line_create(lv_scr_act(), nullptr);
+  second_body = lv_line_create(lv_scr_act(), nullptr);
 
   lv_style_init(&second_line_style);
   lv_style_set_line_width(&second_line_style, LV_STATE_DEFAULT, 2);
@@ -116,15 +125,15 @@ WatchFaceSquircle::WatchFaceSquircle(Controllers::DateTime& dateTimeController,
   lv_style_init(&minute_line_style);
   lv_style_set_line_width(&minute_line_style, LV_STATE_DEFAULT, 7);
   lv_style_set_line_color(&minute_line_style, LV_STATE_DEFAULT, LV_COLOR_BLACK);
-  lv_style_set_line_rounded(&minute_line_style, LV_STATE_DEFAULT, true);
-  lv_style_set_line_opa(&minute_line_style, LV_STATE_DEFAULT, LV_OPA_80);
+  lv_style_set_line_rounded(&minute_line_style, LV_STATE_DEFAULT, false);
+  lv_style_set_line_opa(&minute_line_style, LV_STATE_DEFAULT, LV_OPA_60);
   lv_obj_add_style(minute_body, LV_LINE_PART_MAIN, &minute_line_style);
 
   lv_style_init(&hour_line_style);
-  lv_style_set_line_width(&hour_line_style, LV_STATE_DEFAULT, 8);
+  lv_style_set_line_width(&hour_line_style, LV_STATE_DEFAULT, 7);
   lv_style_set_line_color(&hour_line_style, LV_STATE_DEFAULT, LV_COLOR_BLACK);
-  lv_style_set_line_rounded(&hour_line_style, LV_STATE_DEFAULT, true);
-  lv_style_set_line_opa(&hour_line_style, LV_STATE_DEFAULT, LV_OPA_80);
+  lv_style_set_line_rounded(&hour_line_style, LV_STATE_DEFAULT, false);
+  lv_style_set_line_opa(&hour_line_style, LV_STATE_DEFAULT, LV_OPA_60);
   lv_obj_add_style(hour_body, LV_LINE_PART_MAIN, &hour_line_style);
 
   lv_style_init(&large_scale_style);
@@ -147,8 +156,8 @@ WatchFaceSquircle::WatchFaceSquircle(Controllers::DateTime& dateTimeController,
 
   lv_style_init(&backdrop_style);
   lv_style_set_bg_opa(&backdrop_style, LV_STATE_DEFAULT, LV_OPA_COVER);
-  lv_style_set_bg_color(&backdrop_style, LV_STATE_DEFAULT, lv_color_hex(0xFDF8DC));
-  lv_style_set_bg_grad_color(&backdrop_style, LV_STATE_DEFAULT, lv_color_hex(0xA3AEB0));
+  lv_style_set_bg_color(&backdrop_style, LV_STATE_DEFAULT, backdrop_gradient[1]);
+  lv_style_set_bg_grad_color(&backdrop_style, LV_STATE_DEFAULT, backdrop_gradient[0]);
   lv_style_set_bg_grad_dir(&backdrop_style, LV_STATE_DEFAULT, LV_GRAD_DIR_VER);
   lv_style_set_bg_grad_stop(&backdrop_style, LV_STATE_DEFAULT, disp_height - 1);
   lv_style_set_clip_corner(&backdrop_style, LV_STATE_DEFAULT, true);
@@ -167,6 +176,39 @@ WatchFaceSquircle::WatchFaceSquircle(Controllers::DateTime& dateTimeController,
 
   float maxRadius = fmin(disp_width, disp_height) / 2;
   CalculateSquircleRadii(scale_line_objs, maxRadius * 0.98, 2.4, 1, 1);
+
+  lv_draw_mask_line_param_t param;
+  lv_draw_mask_line_side_t side;
+  for (size_t k = 3; k < 4; k++) {
+    int i = 12 * k;
+    int m = i + 12;
+    for (; i < m; i++) {
+      int i_next = i + 1;
+      if (i_next >= 60) {
+        i_next = 0;
+      }
+      lv_point_t a = scales[i].points[0];
+      lv_point_t b = scales[i_next].points[0];
+      std::cout << "i " << i << " ax " << a.x << ", ay " << a.y << ", bx " << b.x << ", by " << b.y << std::endl;
+      if (b.x - a.x == 0) {
+        continue;
+      }
+      if (i >= 0 && i < 15) {
+        side = LV_DRAW_MASK_LINE_SIDE_LEFT;
+      }
+      if (i >= 15 && i < 30) {
+        side = LV_DRAW_MASK_LINE_SIDE_RIGHT;
+      }
+      if (i >= 30 && i < 45) {
+        side = LV_DRAW_MASK_LINE_SIDE_RIGHT;
+      }
+      if (i >= 45) {
+        side = LV_DRAW_MASK_LINE_SIDE_LEFT;
+      }
+      lv_draw_mask_line_points_init(&param, a.x, a.y, b.x, b.y, side);
+      lv_objmask_add_mask(backdrop_mask, &param);
+    }
+  }
 
   taskRefresh = lv_task_create(RefreshTaskCallback, LV_DISP_DEF_REFR_PERIOD, LV_TASK_PRIO_MID, this);
 
@@ -199,6 +241,16 @@ void WatchFaceSquircle::CalculateSquircleRadii(lv_obj_t* (&line_objs)[N], float 
   float inverse_n = -1.0 / n;
   float scale;
   for (size_t i = 0; i < N; i++) {
+    float theta = (static_cast<float>(i) / static_cast<float>(N)) * TAU;
+    float cos_t = cosf(theta);
+    float sin_t = sinf(theta);
+    // The superellipse formula gives the radius for use in a polar coordinate, name it (r, theta)
+    // Theta is already known, use the formula to get the radius:
+    float r1 = powf(powf(fabs(cos_t / a), n) + powf(fabs(sin_t / a), n), inverse_n) * size;
+    float r2 = r1 * scale;
+    NearestPoint(r1 * cosf(theta) + center_x, r1 * sinf(theta) + center_y, &scales[i].points[0]);
+    NearestPoint(r2 * cosf(theta) + center_x, r2 * sinf(theta) + center_y, &scales[i].points[1]);
+
     switch (i) {
       // 6
       case 15:
@@ -240,15 +292,6 @@ void WatchFaceSquircle::CalculateSquircleRadii(lv_obj_t* (&line_objs)[N], float 
         scale = 0.95;
         break;
     }
-    float theta = (static_cast<float>(i) / static_cast<float>(N)) * TAU;
-    float cos_t = cosf(theta);
-    float sin_t = sinf(theta);
-    // The superellipse formula gives the radius for use in a polar coordinate, name it (r, theta)
-    // Theta is already known, use the formula to get the radius:
-    float r1 = powf(powf(fabs(cos_t / a), n) + powf(fabs(sin_t / a), n), inverse_n) * size;
-    float r2 = r1 * scale;
-    NearestPoint(r1 * cosf(theta) + center_x, r1 * sinf(theta) + center_x, &scales[i].points[0]);
-    NearestPoint(r2 * cosf(theta) + center_y, r2 * sinf(theta) + center_y, &scales[i].points[1]);
     lv_line_set_points(line_objs[i], scales[i].points, 2);
   }
 }
