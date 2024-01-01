@@ -92,7 +92,6 @@ namespace Pinetime {
         lv_obj_t* heartbeatValue;
 
         lv_color_t backdrop_gradient[2];
-        lv_draw_mask_line_param_t params[60];
 
         lv_coord_t center_x;
         lv_coord_t center_y;

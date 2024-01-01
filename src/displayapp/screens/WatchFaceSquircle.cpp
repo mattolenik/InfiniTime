@@ -1,6 +1,5 @@
 #include "displayapp/screens/WatchFaceSquircle.h"
 #include <cmath>
-#include <iostream>
 #include <lvgl/lvgl.h>
 #include "displayapp/screens/BatteryIcon.h"
 #include "displayapp/screens/BleIcon.h"
@@ -179,37 +178,31 @@ WatchFaceSquircle::WatchFaceSquircle(Controllers::DateTime& dateTimeController,
 
   lv_draw_mask_line_param_t param;
   lv_draw_mask_line_side_t side;
-  for (size_t k = 3; k < 4; k++) {
-    int i = 12 * k;
-    int m = i + 12;
-    for (; i < m; i++) {
-      int i_next = i + 1;
-      if (i_next >= 60) {
-        i_next = 0;
-      }
-      lv_point_t a = scales[i].points[0];
-      lv_point_t b = scales[i_next].points[0];
-      std::cout << "i " << i << " ax " << a.x << ", ay " << a.y << ", bx " << b.x << ", by " << b.y << std::endl;
-      if (b.x - a.x == 0) {
-        continue;
-      }
-      if (i >= 0 && i < 15) {
-        side = LV_DRAW_MASK_LINE_SIDE_LEFT;
-      }
-      if (i >= 15 && i < 30) {
-        side = LV_DRAW_MASK_LINE_SIDE_RIGHT;
-      }
-      if (i >= 30 && i < 45) {
-        side = LV_DRAW_MASK_LINE_SIDE_RIGHT;
-      }
-      if (i >= 45) {
-        side = LV_DRAW_MASK_LINE_SIDE_LEFT;
-      }
-      lv_draw_mask_line_points_init(&param, a.x, a.y, b.x, b.y, side);
-      lv_objmask_add_mask(backdrop_mask, &param);
+  for (int i = 0; i < 60; i += 5) {
+    int i_next = i + 5;
+    if (i_next >= 60) {
+      i_next = 0;
     }
+    lv_point_t a = scales[i].points[0];
+    lv_point_t b = scales[i_next].points[0];
+    if (b.x - a.x == 0) {
+      continue;
+    }
+    if (i >= 0 && i < 15) {
+      side = LV_DRAW_MASK_LINE_SIDE_LEFT;
+    }
+    if (i >= 15 && i < 30) {
+      side = LV_DRAW_MASK_LINE_SIDE_RIGHT;
+    }
+    if (i >= 30 && i < 45) {
+      side = LV_DRAW_MASK_LINE_SIDE_RIGHT;
+    }
+    if (i >= 45) {
+      side = LV_DRAW_MASK_LINE_SIDE_LEFT;
+    }
+    lv_draw_mask_line_points_init(&param, a.x, a.y, b.x, b.y, side);
+    lv_objmask_add_mask(backdrop_mask, &param);
   }
-
   taskRefresh = lv_task_create(RefreshTaskCallback, LV_DISP_DEF_REFR_PERIOD, LV_TASK_PRIO_MID, this);
 
   Refresh();
