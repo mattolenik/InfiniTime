@@ -64,10 +64,8 @@ namespace Pinetime {
         lv_obj_t* minute_body;
         lv_obj_t* second_body;
         lv_obj_t* backdrop;
-        lv_obj_t* backdrop_mask;
         lv_obj_t* time_box;
         lv_obj_t* scale_line_objs[60];
-        lv_obj_t* mask_container;
         line_segment scales[60];
 
         lv_point_t hour_point[2];

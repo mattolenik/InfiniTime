@@ -166,39 +166,14 @@ WatchFaceSquircle::WatchFaceSquircle(Controllers::DateTime& dateTimeController,
   lv_style_set_bg_grad_dir(&time_box_style, LV_STATE_DEFAULT, LV_GRAD_DIR_VER);
   lv_style_set_bg_grad_stop(&time_box_style, LV_STATE_DEFAULT, disp_height - 1);
   lv_style_set_clip_corner(&time_box_style, LV_STATE_DEFAULT, true);
+  lv_style_set_outline_width(&time_box_style, LV_STATE_DEFAULT, 40);
+  lv_style_set_outline_color(&time_box_style, LV_STATE_DEFAULT, LV_COLOR_BLACK);
   lv_style_set_radius(&time_box_style, LV_STATE_DEFAULT, 8);
   lv_obj_add_style(time_box, LV_OBJ_PART_MAIN, &time_box_style);
 
   float maxRadius = fmin(disp_width, disp_height) / 2;
   CalculateSquircleRadii(scale_line_objs, maxRadius * 0.98, 2.4, 1, 1);
 
-  // lv_draw_mask_line_param_t param;
-  // lv_draw_mask_line_side_t side;
-  // for (int i = 0; i < 60; i += 5) {
-  //   int i_next = i + 5;
-  //   if (i_next >= 60) {
-  //     i_next = 0;
-  //   }
-  //   lv_point_t a = scales[i].points[0];
-  //   lv_point_t b = scales[i_next].points[0];
-  //   if (b.x - a.x == 0) {
-  //     continue;
-  //   }
-  //   if (i >= 0 && i < 15) {
-  //     side = LV_DRAW_MASK_LINE_SIDE_LEFT;
-  //   }
-  //   if (i >= 15 && i < 30) {
-  //     side = LV_DRAW_MASK_LINE_SIDE_RIGHT;
-  //   }
-  //   if (i >= 30 && i < 45) {
-  //     side = LV_DRAW_MASK_LINE_SIDE_RIGHT;
-  //   }
-  //   if (i >= 45) {
-  //     side = LV_DRAW_MASK_LINE_SIDE_LEFT;
-  //   }
-  //   lv_draw_mask_line_points_init(&param, a.x, a.y, b.x, b.y, side);
-  //   lv_objmask_add_mask(backdrop_mask, &param);
-  // }
   taskRefresh = lv_task_create(RefreshTaskCallback, LV_DISP_DEF_REFR_PERIOD, LV_TASK_PRIO_MID, this);
 
   Refresh();
