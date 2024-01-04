@@ -189,6 +189,7 @@ WatchFaceSquircle::~WatchFaceSquircle() {
   lv_style_reset(&medium_scale_style);
   lv_style_reset(&small_scale_style);
   lv_style_reset(&backdrop_style);
+  lv_style_reset(&time_box_style);
 
   lv_obj_clean(lv_scr_act());
 }
